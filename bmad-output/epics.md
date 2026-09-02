@@ -120,7 +120,7 @@ the AI's spoken reply, and follow along with a live transcript.
 
 | ID | Slug | Intent | Status |
 |------|------|--------|--------|
-| 4.1 | web-ui-core | Minimal web UI: scenario picker, record button, reply playback | review |
+| 4.1 | web-ui-core | Minimal web UI: scenario picker, record button, reply playback | done |
 | 4.2 | live-transcript | Live transcript display for both sides of the conversation | ready-for-dev |
 
 **Cross-epic dependencies:**
@@ -162,9 +162,9 @@ backend session state
 No story points, velocity, or burndown. Track by COUNT only:
 
 - Total stories: 13
-- Done: 9
-- Remaining: 4
-- Completion rate: 69%
+- Done: 10
+- Remaining: 3
+- Completion rate: 77%
 
 ## Notes
 

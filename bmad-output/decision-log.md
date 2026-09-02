@@ -19,6 +19,15 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-02 — Story 4.1 confirmed by user in a real browser, status: done
+- **Decision:** User manually tested the running stack (scenario pick →
+  record → stop → reply played back, status text changing through each
+  state) and confirmed it works. Flipped 4.1 from `review` to `done` in the
+  story file and `epics.md` (now 10/13 done).
+- **Made by:** direct implementation (outside the BMAD planning skills),
+  confirmed by the user
+- **Supersedes:** none
+
 ### 2026-09-02 — Wave 7 (story 4.1, core web UI) implemented, status: review (not done)
 - **Decision:** Implemented the full frontend shell: scenario picker, record
   button wrapping `MediaRecorder`, a 4-state status indicator
