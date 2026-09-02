@@ -1,0 +1,353 @@
+{
+  "schemaVersion": "1.0",
+  "generatedAt": "2026-09-02T08:21:37Z",
+  "projectName": "Self-Hosted Voice Language Tutor",
+  "outputFolder": "bmad-output",
+  "stories": [
+    {
+      "id": "1.1.compose-skeleton",
+      "storyFilePath": "bmad-output/stories/1.1.compose-skeleton.story.md",
+      "status": "ready-for-dev",
+      "epic": "1",
+      "storyNumber": "1",
+      "title": "Docker Compose Skeleton",
+      "ownedScope": [
+        "docker-compose.yml",
+        "backend/Dockerfile",
+        "README.md"
+      ],
+      "wave": 1,
+      "parallelSet": null,
+      "dependencies": [],
+      "acceptanceCriteriaSummary": [
+        "`docker-compose.yml` defines a `backend` service (builds from `backend/`) and an `ollama` service (`ollama/ollama` im...",
+        "`docker compose up` starts both services without error on a clean checkout.",
+        "The `ollama` service is reachable from `backend` by service name on the compose network (e.g. `http://ollama:11434`)."
+      ],
+      "lockedSectionsNote": "Sections Acceptance Criteria, Dev Notes, and Testing are LOCKED. External dev tools must not edit them. Populate only the Dev Agent Record section.",
+      "devAgentRecord": null
+    },
+    {
+      "id": "1.2.backend-skeleton",
+      "storyFilePath": "bmad-output/stories/1.2.backend-skeleton.story.md",
+      "status": "ready-for-dev",
+      "epic": "1",
+      "storyNumber": "2",
+      "title": "Backend Application Skeleton",
+      "ownedScope": [
+        "backend/app/main.py",
+        "backend/app/api/router.py",
+        "backend/app/api/__init__.py",
+        "backend/app/pipeline/__init__.py",
+        "backend/app/scenarios/__init__.py",
+        "backend/app/state/__init__.py",
+        "backend/requirements/base.txt",
+        "backend/tests/test_health.py",
+        "README.md"
+      ],
+      "wave": 2,
+      "parallelSet": null,
+      "dependencies": [
+        "1.1.compose-skeleton"
+      ],
+      "acceptanceCriteriaSummary": [
+        "`backend/app/main.py` exposes a FastAPI app that starts under the `backend` container from 1.1.",
+        "A `/health` endpoint returns 200, confirming the app is running.",
+        "`backend/app/api/router.py` exists as an empty router aggregator, included once by `main.py`, so later stories can ad..."
+      ],
+      "lockedSectionsNote": "Sections Acceptance Criteria, Dev Notes, and Testing are LOCKED. External dev tools must not edit them. Populate only the Dev Agent Record section.",
+      "devAgentRecord": null
+    },
+    {
+      "id": "2.1.stt-integration",
+      "storyFilePath": "bmad-output/stories/2.1.stt-integration.story.md",
+      "status": "ready-for-dev",
+      "epic": "2",
+      "storyNumber": "1",
+      "title": "Local Speech-to-Text Integration",
+      "ownedScope": [
+        "backend/app/pipeline/stt.py",
+        "backend/requirements/stt.txt",
+        "backend/tests/test_stt.py",
+        "backend/tests/fixtures/sample_audio.wav"
+      ],
+      "wave": 3,
+      "parallelSet": "wave-3-stt-and-scenario-schema",
+      "dependencies": [
+        "1.2.backend-skeleton"
+      ],
+      "acceptanceCriteriaSummary": [
+        "A `transcribe(audio_bytes: bytes) -> str` function in `app/pipeline/stt.py` transcribes audio entirely locally via fa...",
+        "The STT model runs in-process inside the `backend` container \u2014 no separate STT service/container.",
+        "Given a short fixture audio sample with known speech, `transcribe()` returns text matching the spoken content (verifi..."
+      ],
+      "lockedSectionsNote": "Sections Acceptance Criteria, Dev Notes, and Testing are LOCKED. External dev tools must not edit them. Populate only the Dev Agent Record section.",
+      "devAgentRecord": null
+    },
+    {
+      "id": "3.1.scenario-schema-loader",
+      "storyFilePath": "bmad-output/stories/3.1.scenario-schema-loader.story.md",
+      "status": "ready-for-dev",
+      "epic": "3",
+      "storyNumber": "1",
+      "title": "Scenario Schema and Loader",
+      "ownedScope": [
+        "backend/app/scenarios/schema.py",
+        "backend/app/scenarios/loader.py",
+        "backend/requirements/scenarios.txt",
+        "backend/tests/test_scenarios.py",
+        "backend/tests/fixtures/scenarios/**"
+      ],
+      "wave": 3,
+      "parallelSet": "wave-3-stt-and-scenario-schema",
+      "dependencies": [
+        "1.2.backend-skeleton"
+      ],
+      "acceptanceCriteriaSummary": [
+        "A documented YAML schema for a scenario exists with fields: `id`, `title`, `target_language`, `persona_prompt`, `goal...",
+        "`app/scenarios/loader.py` loads all `*.yaml` files from a configurable scenarios directory at startup and validates t...",
+        "A malformed scenario file (missing required field, wrong type) fails startup with a clear error identifying the file..."
+      ],
+      "lockedSectionsNote": "Sections Acceptance Criteria, Dev Notes, and Testing are LOCKED. External dev tools must not edit them. Populate only the Dev Agent Record section.",
+      "devAgentRecord": null
+    },
+    {
+      "id": "2.2.llm-integration",
+      "storyFilePath": "bmad-output/stories/2.2.llm-integration.story.md",
+      "status": "ready-for-dev",
+      "epic": "2",
+      "storyNumber": "2",
+      "title": "Local LLM Integration via Ollama",
+      "ownedScope": [
+        "backend/app/pipeline/llm.py",
+        "backend/requirements/llm.txt",
+        "backend/tests/test_llm.py"
+      ],
+      "wave": 4,
+      "parallelSet": "wave-4-llm-and-starter-scenarios",
+      "dependencies": [
+        "1.1.compose-skeleton",
+        "1.2.backend-skeleton"
+      ],
+      "acceptanceCriteriaSummary": [
+        "A `generate_reply(prompt: str) -> str` function in `app/pipeline/llm.py` calls the Ollama container's REST API and re...",
+        "The Ollama base URL and model name are read from environment variables (with sensible defaults), not hardcoded inline.",
+        "Given a simple test prompt, `generate_reply()` returns a non-empty text reply from the configured model."
+      ],
+      "lockedSectionsNote": "Sections Acceptance Criteria, Dev Notes, and Testing are LOCKED. External dev tools must not edit them. Populate only the Dev Agent Record section.",
+      "devAgentRecord": null
+    },
+    {
+      "id": "3.2.starter-scenarios",
+      "storyFilePath": "bmad-output/stories/3.2.starter-scenarios.story.md",
+      "status": "ready-for-dev",
+      "epic": "3",
+      "storyNumber": "2",
+      "title": "Starter Scenario Content",
+      "ownedScope": [
+        "backend/scenarios/restaurant.yaml",
+        "backend/scenarios/job_interview.yaml",
+        "backend/scenarios/small_talk.yaml",
+        "backend/scenarios/directions.yaml",
+        "backend/scenarios/shopping.yaml"
+      ],
+      "wave": 4,
+      "parallelSet": "wave-4-llm-and-starter-scenarios",
+      "dependencies": [
+        "3.1.scenario-schema-loader"
+      ],
+      "acceptanceCriteriaSummary": [
+        "At least 3, up to 5, scenario YAML files exist under `backend/scenarios/`, each conforming to the 3.1 schema.",
+        "Scenarios cover distinct situations, at minimum: restaurant ordering, a job interview, and small talk; directions and...",
+        "Each scenario's `persona_prompt` gives the LLM enough context to stay in character and pursue the scenario's `goal` a..."
+      ],
+      "lockedSectionsNote": "Sections Acceptance Criteria, Dev Notes, and Testing are LOCKED. External dev tools must not edit them. Populate only the Dev Agent Record section.",
+      "devAgentRecord": null
+    },
+    {
+      "id": "2.3.tts-integration",
+      "storyFilePath": "bmad-output/stories/2.3.tts-integration.story.md",
+      "status": "ready-for-dev",
+      "epic": "2",
+      "storyNumber": "3",
+      "title": "Local Text-to-Speech Integration",
+      "ownedScope": [
+        "backend/app/pipeline/tts.py",
+        "backend/requirements/tts.txt",
+        "backend/tests/test_tts.py"
+      ],
+      "wave": 5,
+      "parallelSet": "wave-5-tts-and-scenario-api",
+      "dependencies": [
+        "1.2.backend-skeleton"
+      ],
+      "acceptanceCriteriaSummary": [
+        "A `synthesize(text: str) -> bytes` function in `app/pipeline/tts.py` generates audio locally from input text via Pipe...",
+        "TTS runs in-process inside the `backend` container \u2014 no separate TTS service/container.",
+        "Given a short text string, `synthesize()` returns non-empty audio bytes in a browser-playable format (e.g. WAV)."
+      ],
+      "lockedSectionsNote": "Sections Acceptance Criteria, Dev Notes, and Testing are LOCKED. External dev tools must not edit them. Populate only the Dev Agent Record section.",
+      "devAgentRecord": null
+    },
+    {
+      "id": "3.3.scenario-selection-api",
+      "storyFilePath": "bmad-output/stories/3.3.scenario-selection-api.story.md",
+      "status": "ready-for-dev",
+      "epic": "3",
+      "storyNumber": "3",
+      "title": "Scenario List and Session-Start API",
+      "ownedScope": [
+        "backend/app/api/scenarios.py",
+        "backend/app/api/session_start.py",
+        "backend/app/state/session_store.py",
+        "backend/app/api/router.py",
+        "backend/tests/test_session_api.py"
+      ],
+      "wave": 5,
+      "parallelSet": "wave-5-tts-and-scenario-api",
+      "dependencies": [
+        "3.1.scenario-schema-loader",
+        "3.2.starter-scenarios"
+      ],
+      "acceptanceCriteriaSummary": [
+        "`GET /api/scenarios` returns the list of loaded scenarios (`id`, `title`, `target_language`, `difficulty`).",
+        "`POST /api/session/start` accepts a scenario `id` and creates a new session, returning a session `id`.",
+        "Starting a session with an unknown scenario `id` returns a clear 4xx error, not a server crash."
+      ],
+      "lockedSectionsNote": "Sections Acceptance Criteria, Dev Notes, and Testing are LOCKED. External dev tools must not edit them. Populate only the Dev Agent Record section.",
+      "devAgentRecord": null
+    },
+    {
+      "id": "2.4.turn-pipeline",
+      "storyFilePath": "bmad-output/stories/2.4.turn-pipeline.story.md",
+      "status": "ready-for-dev",
+      "epic": "2",
+      "storyNumber": "4",
+      "title": "End-to-End Turn Pipeline",
+      "ownedScope": [
+        "backend/app/api/turn.py",
+        "backend/app/pipeline/turn.py",
+        "backend/app/api/router.py",
+        "backend/tests/test_turn.py"
+      ],
+      "wave": 6,
+      "parallelSet": null,
+      "dependencies": [
+        "2.1.stt-integration",
+        "2.2.llm-integration",
+        "2.3.tts-integration",
+        "3.1.scenario-schema-loader",
+        "3.3.scenario-selection-api"
+      ],
+      "acceptanceCriteriaSummary": [
+        "`POST /api/session/{id}/turn` accepts recorded audio for an active session and returns the user's transcript, the AI'...",
+        "The endpoint composes the LLM prompt from the session's scenario persona/goal (via 3.1's schema and 3.3's session/sce...",
+        "The endpoint calls, in order, `transcribe()` (2.1) \u2192 prompt composition \u2192 `generate_reply()` (2.2) \u2192 `synthesize()` (..."
+      ],
+      "lockedSectionsNote": "Sections Acceptance Criteria, Dev Notes, and Testing are LOCKED. External dev tools must not edit them. Populate only the Dev Agent Record section.",
+      "devAgentRecord": null
+    },
+    {
+      "id": "4.1.web-ui-core",
+      "storyFilePath": "bmad-output/stories/4.1.web-ui-core.story.md",
+      "status": "ready-for-dev",
+      "epic": "4",
+      "storyNumber": "1",
+      "title": "Core Web UI \u2014 Scenario Picker, Recording, Playback",
+      "ownedScope": [
+        "frontend/index.html",
+        "frontend/styles.css",
+        "frontend/app.js",
+        "frontend/components/scenario_picker.js",
+        "frontend/components/recorder.js"
+      ],
+      "wave": 7,
+      "parallelSet": null,
+      "dependencies": [
+        "2.4.turn-pipeline",
+        "3.3.scenario-selection-api"
+      ],
+      "acceptanceCriteriaSummary": [
+        "On load, the page fetches `GET /api/scenarios` (from 3.3) and renders a selectable list.",
+        "Selecting a scenario and confirming calls `POST /api/session/start` (from 3.3) and stores the returned session id cli...",
+        "A record button starts/stops microphone capture (push-to-talk) via the browser `MediaRecorder` API."
+      ],
+      "lockedSectionsNote": "Sections Acceptance Criteria, Dev Notes, and Testing are LOCKED. External dev tools must not edit them. Populate only the Dev Agent Record section.",
+      "devAgentRecord": null
+    },
+    {
+      "id": "4.2.live-transcript",
+      "storyFilePath": "bmad-output/stories/4.2.live-transcript.story.md",
+      "status": "ready-for-dev",
+      "epic": "4",
+      "storyNumber": "2",
+      "title": "Live Transcript Display",
+      "ownedScope": [
+        "frontend/components/transcript.js",
+        "frontend/app.js"
+      ],
+      "wave": 8,
+      "parallelSet": null,
+      "dependencies": [
+        "4.1.web-ui-core"
+      ],
+      "acceptanceCriteriaSummary": [
+        "A transcript panel is visible in the UI throughout an active session.",
+        "After each turn, the user's transcribed text and the AI's reply text (both returned by `POST /api/session/{id}/turn`)...",
+        "The transcript panel auto-scrolls to show the latest turn."
+      ],
+      "lockedSectionsNote": "Sections Acceptance Criteria, Dev Notes, and Testing are LOCKED. External dev tools must not edit them. Populate only the Dev Agent Record section.",
+      "devAgentRecord": null
+    },
+    {
+      "id": "5.1.session-end-restart",
+      "storyFilePath": "bmad-output/stories/5.1.session-end-restart.story.md",
+      "status": "ready-for-dev",
+      "epic": "5",
+      "storyNumber": "1",
+      "title": "Session End and Restart Flow",
+      "ownedScope": [
+        "frontend/app.js",
+        "frontend/components/scenario_picker.js"
+      ],
+      "wave": 9,
+      "parallelSet": null,
+      "dependencies": [
+        "4.1.web-ui-core",
+        "4.2.live-transcript"
+      ],
+      "acceptanceCriteriaSummary": [
+        "An \"end session\" control is visible whenever a session is active.",
+        "Ending a session clears client-side session state (session id, transcript) and returns the UI to the scenario picker.",
+        "Picking a new scenario after ending a session calls `POST /api/session/start` (from 3.3) again, exactly as the first..."
+      ],
+      "lockedSectionsNote": "Sections Acceptance Criteria, Dev Notes, and Testing are LOCKED. External dev tools must not edit them. Populate only the Dev Agent Record section.",
+      "devAgentRecord": null
+    },
+    {
+      "id": "5.2.error-states",
+      "storyFilePath": "bmad-output/stories/5.2.error-states.story.md",
+      "status": "ready-for-dev",
+      "epic": "5",
+      "storyNumber": "2",
+      "title": "User-Facing Error States",
+      "ownedScope": [
+        "frontend/app.js",
+        "frontend/components/recorder.js",
+        "frontend/styles.css"
+      ],
+      "wave": 10,
+      "parallelSet": null,
+      "dependencies": [
+        "5.1.session-end-restart"
+      ],
+      "acceptanceCriteriaSummary": [
+        "If the browser denies microphone permission, the UI shows a clear message explaining recording is unavailable, instea...",
+        "If a turn request fails because a pipeline stage errored (per 2.4's AC#5 error responses), the UI shows a clear, non-...",
+        "If `GET /api/scenarios` or `POST /api/session/start` fails (e.g. backend not yet ready), the UI shows a clear retry-a..."
+      ],
+      "lockedSectionsNote": "Sections Acceptance Criteria, Dev Notes, and Testing are LOCKED. External dev tools must not edit them. Populate only the Dev Agent Record section.",
+      "devAgentRecord": null
+    }
+  ]
+}

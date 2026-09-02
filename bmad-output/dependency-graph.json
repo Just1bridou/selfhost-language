@@ -1,0 +1,317 @@
+{
+  "max_parallel": 3,
+  "nodes": [
+    {
+      "id": "1.1",
+      "slug": "compose-skeleton",
+      "epic": 1,
+      "status": "ready-for-dev",
+      "scope": [
+        "docker-compose.yml",
+        "backend/Dockerfile",
+        "README.md"
+      ]
+    },
+    {
+      "id": "1.2",
+      "slug": "backend-skeleton",
+      "epic": 1,
+      "status": "ready-for-dev",
+      "scope": [
+        "backend/app/main.py",
+        "backend/app/api/router.py",
+        "backend/app/api/__init__.py",
+        "backend/app/pipeline/__init__.py",
+        "backend/app/scenarios/__init__.py",
+        "backend/app/state/__init__.py",
+        "backend/requirements/base.txt",
+        "backend/tests/test_health.py",
+        "README.md"
+      ]
+    },
+    {
+      "id": "2.1",
+      "slug": "stt-integration",
+      "epic": 2,
+      "status": "ready-for-dev",
+      "scope": [
+        "backend/app/pipeline/stt.py",
+        "backend/requirements/stt.txt",
+        "backend/tests/test_stt.py",
+        "backend/tests/fixtures/sample_audio.wav"
+      ]
+    },
+    {
+      "id": "2.2",
+      "slug": "llm-integration",
+      "epic": 2,
+      "status": "ready-for-dev",
+      "scope": [
+        "backend/app/pipeline/llm.py",
+        "backend/requirements/llm.txt",
+        "backend/tests/test_llm.py"
+      ]
+    },
+    {
+      "id": "2.3",
+      "slug": "tts-integration",
+      "epic": 2,
+      "status": "ready-for-dev",
+      "scope": [
+        "backend/app/pipeline/tts.py",
+        "backend/requirements/tts.txt",
+        "backend/tests/test_tts.py"
+      ]
+    },
+    {
+      "id": "2.4",
+      "slug": "turn-pipeline",
+      "epic": 2,
+      "status": "ready-for-dev",
+      "scope": [
+        "backend/app/api/turn.py",
+        "backend/app/pipeline/turn.py",
+        "backend/app/api/router.py",
+        "backend/tests/test_turn.py"
+      ]
+    },
+    {
+      "id": "3.1",
+      "slug": "scenario-schema-loader",
+      "epic": 3,
+      "status": "ready-for-dev",
+      "scope": [
+        "backend/app/scenarios/schema.py",
+        "backend/app/scenarios/loader.py",
+        "backend/requirements/scenarios.txt",
+        "backend/tests/test_scenarios.py",
+        "backend/tests/fixtures/scenarios/**"
+      ]
+    },
+    {
+      "id": "3.2",
+      "slug": "starter-scenarios",
+      "epic": 3,
+      "status": "ready-for-dev",
+      "scope": [
+        "backend/scenarios/restaurant.yaml",
+        "backend/scenarios/job_interview.yaml",
+        "backend/scenarios/small_talk.yaml",
+        "backend/scenarios/directions.yaml",
+        "backend/scenarios/shopping.yaml"
+      ]
+    },
+    {
+      "id": "3.3",
+      "slug": "scenario-selection-api",
+      "epic": 3,
+      "status": "ready-for-dev",
+      "scope": [
+        "backend/app/api/scenarios.py",
+        "backend/app/api/session_start.py",
+        "backend/app/state/session_store.py",
+        "backend/app/api/router.py",
+        "backend/tests/test_session_api.py"
+      ]
+    },
+    {
+      "id": "4.1",
+      "slug": "web-ui-core",
+      "epic": 4,
+      "status": "ready-for-dev",
+      "scope": [
+        "frontend/index.html",
+        "frontend/styles.css",
+        "frontend/app.js",
+        "frontend/components/scenario_picker.js",
+        "frontend/components/recorder.js"
+      ]
+    },
+    {
+      "id": "4.2",
+      "slug": "live-transcript",
+      "epic": 4,
+      "status": "ready-for-dev",
+      "scope": [
+        "frontend/components/transcript.js",
+        "frontend/app.js"
+      ]
+    },
+    {
+      "id": "5.1",
+      "slug": "session-end-restart",
+      "epic": 5,
+      "status": "ready-for-dev",
+      "scope": [
+        "frontend/app.js",
+        "frontend/components/scenario_picker.js"
+      ]
+    },
+    {
+      "id": "5.2",
+      "slug": "error-states",
+      "epic": 5,
+      "status": "ready-for-dev",
+      "scope": [
+        "frontend/app.js",
+        "frontend/components/recorder.js",
+        "frontend/styles.css"
+      ]
+    }
+  ],
+  "ordering_edges": [
+    {
+      "from": "1.1",
+      "to": "1.2",
+      "reason": "intra-epic-sequence"
+    },
+    {
+      "from": "2.1",
+      "to": "2.2",
+      "reason": "intra-epic-sequence"
+    },
+    {
+      "from": "2.2",
+      "to": "2.3",
+      "reason": "intra-epic-sequence"
+    },
+    {
+      "from": "2.3",
+      "to": "2.4",
+      "reason": "intra-epic-sequence"
+    },
+    {
+      "from": "3.1",
+      "to": "3.2",
+      "reason": "intra-epic-sequence"
+    },
+    {
+      "from": "3.2",
+      "to": "3.3",
+      "reason": "intra-epic-sequence"
+    },
+    {
+      "from": "4.1",
+      "to": "4.2",
+      "reason": "intra-epic-sequence"
+    },
+    {
+      "from": "5.1",
+      "to": "5.2",
+      "reason": "intra-epic-sequence"
+    },
+    {
+      "from": "1.2",
+      "to": "2.1",
+      "reason": "depends_on"
+    },
+    {
+      "from": "1.2",
+      "to": "2.2",
+      "reason": "depends_on"
+    },
+    {
+      "from": "1.2",
+      "to": "2.3",
+      "reason": "depends_on"
+    },
+    {
+      "from": "1.2",
+      "to": "3.1",
+      "reason": "depends_on"
+    },
+    {
+      "from": "3.1",
+      "to": "2.4",
+      "reason": "depends_on"
+    },
+    {
+      "from": "3.3",
+      "to": "2.4",
+      "reason": "depends_on"
+    },
+    {
+      "from": "2.4",
+      "to": "4.1",
+      "reason": "depends_on"
+    },
+    {
+      "from": "3.3",
+      "to": "4.1",
+      "reason": "depends_on"
+    },
+    {
+      "from": "4.1",
+      "to": "5.1",
+      "reason": "depends_on"
+    },
+    {
+      "from": "4.2",
+      "to": "5.1",
+      "reason": "depends_on"
+    }
+  ],
+  "conflicts": [
+    {
+      "a": "1.1",
+      "b": "1.2",
+      "class": "file",
+      "detail": "README.md / README.md"
+    },
+    {
+      "a": "1.2",
+      "b": "2.4",
+      "class": "file",
+      "detail": "backend/app/api/router.py / backend/app/api/router.py"
+    },
+    {
+      "a": "1.2",
+      "b": "3.3",
+      "class": "file",
+      "detail": "backend/app/api/router.py / backend/app/api/router.py"
+    },
+    {
+      "a": "2.4",
+      "b": "3.3",
+      "class": "file",
+      "detail": "backend/app/api/router.py / backend/app/api/router.py"
+    },
+    {
+      "a": "4.1",
+      "b": "4.2",
+      "class": "file",
+      "detail": "frontend/app.js / frontend/app.js"
+    },
+    {
+      "a": "4.1",
+      "b": "5.1",
+      "class": "file",
+      "detail": "frontend/app.js / frontend/app.js"
+    },
+    {
+      "a": "4.1",
+      "b": "5.2",
+      "class": "file",
+      "detail": "frontend/styles.css / frontend/styles.css"
+    },
+    {
+      "a": "4.2",
+      "b": "5.1",
+      "class": "file",
+      "detail": "frontend/app.js / frontend/app.js"
+    },
+    {
+      "a": "4.2",
+      "b": "5.2",
+      "class": "file",
+      "detail": "frontend/app.js / frontend/app.js"
+    },
+    {
+      "a": "5.1",
+      "b": "5.2",
+      "class": "file",
+      "detail": "frontend/app.js / frontend/app.js"
+    }
+  ],
+  "blocked": []
+}
