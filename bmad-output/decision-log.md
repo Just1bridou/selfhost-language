@@ -77,6 +77,20 @@ or delete past entries — supersede them with a new entry that references the o
 - **Made by:** direct implementation (outside the BMAD planning skills)
 - **Supersedes:** none
 
+### 2026-09-02 — Bug fix: error-banner "Dismiss" button never hid the banner
+- **Decision:** User reported Dismiss doing nothing. Root cause: `#error-banner
+  { display: flex; }` (specificity 1-0-0) overrode the browser's default
+  `[hidden] { display: none }` (specificity 0-1-0) — an ID selector always
+  beats an attribute selector, so `errorBanner.hidden = true` correctly set
+  the HTML attribute but the CSS cascade still rendered it visible. Fixed by
+  adding `#error-banner[hidden] { display: none; }` (specificity 1-1-0,
+  wins). Audited every other `.hidden`-toggled element in the app
+  (`#scenario-picker`, `#conversation`) — both rely only on the generic
+  `section {}` rule, which never sets `display`, so neither had this trap.
+- **Made by:** direct implementation (outside the BMAD planning skills),
+  fixing a user-reported bug
+- **Supersedes:** none
+
 ### 2026-09-02 — Story 5.1 confirmed by user in a real browser, status: done
 - **Decision:** User manually tested end session / restart and confirmed it
   works. Flipped 5.1 from `review` to `done` (12/13 done — only 5.2 remains).

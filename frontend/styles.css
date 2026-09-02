@@ -50,6 +50,13 @@ section {
   margin-bottom: 1.5rem;
 }
 
+/* #error-banner's own `display: flex` above has higher specificity than the
+   browser's default `[hidden] { display: none }`, so without this rule
+   setting `.hidden = true` in JS never actually hides it. */
+#error-banner[hidden] {
+  display: none;
+}
+
 #error-banner button {
   background: transparent;
   border: 1px solid #991b1b;
