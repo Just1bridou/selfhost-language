@@ -61,7 +61,7 @@ on-device.
 | 2.1 | stt-integration | Integrate local STT (faster-whisper): audio in → text out | done |
 | 2.2 | llm-integration | Integrate local LLM via Ollama: text in → reply text out | done |
 | 2.3 | tts-integration | Integrate local TTS (Piper): text in → audio out | done |
-| 2.4 | turn-pipeline | Wire STT → scenario-aware LLM → TTS into one backend turn endpoint | ready-for-dev |
+| 2.4 | turn-pipeline | Wire STT → scenario-aware LLM → TTS into one backend turn endpoint | done |
 
 **Cross-epic dependencies:**
 - Blocked by: Epic 1 — needs the compose stack and backend skeleton
@@ -162,9 +162,9 @@ backend session state
 No story points, velocity, or burndown. Track by COUNT only:
 
 - Total stories: 13
-- Done: 8
-- Remaining: 5
-- Completion rate: 62%
+- Done: 9
+- Remaining: 4
+- Completion rate: 69%
 
 ## Notes
 

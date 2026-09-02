@@ -19,6 +19,27 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-02 — Wave 6 (story 2.4, turn pipeline) implemented and verified, status: done — Epic 2 and Epic 3 fully complete
+- **Decision:** Implemented `POST /api/session/{id}/turn`, wiring STT → a
+  scenario-aware prompt → LLM → TTS into one endpoint, extending
+  `router.py` a third time (1.2 → 3.3 → 2.4). Response is JSON with
+  `user_text`/`ai_text`/`audio_base64` — a data-URI-ready format chosen so
+  the frontend (4.1) needs only `fetch()` + JSON, no multipart response
+  parsing. Verified with 6 mocked tests, a real end-to-end pytest run (real
+  STT/LLM/TTS, ~20s), and a live `curl` multipart upload against a running
+  `docker compose up` stack that returned a genuinely on-persona reply and
+  real audio. `epics.md` now shows 9/13 done — Epic 2 (Voice Pipeline) and
+  Epic 3 (Scenarios) are both fully complete; only Epic 4 (Frontend) and
+  Epic 5 (Polish) remain.
+- **Follow-up noted, not addressed here:** STT/TTS models download on first
+  use per process (established in 2.1/2.3) but aren't cached in a persistent
+  volume the way `ollama-models` is — every fresh `backend` container
+  re-downloads ~200MB+ before its first real turn (~20-24s observed). Not a
+  blocker for any AC in this backlog, but worth a volume similar to 1.1's
+  `ollama-models` if startup latency matters later.
+- **Made by:** direct implementation (outside the BMAD planning skills)
+- **Supersedes:** none
+
 ### 2026-09-02 — Wave 5 (stories 2.3 TTS + 3.3 scenario/session API) implemented and verified, status: done
 - **Decision:** Implemented both file-disjoint wave-5 stories together. 2.3:
   `synthesize()` via `piper-tts`, lazily downloading the `en_US-lessac-medium`
