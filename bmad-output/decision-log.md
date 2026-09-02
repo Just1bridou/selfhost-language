@@ -19,6 +19,27 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-02 — Wave 5 (stories 2.3 TTS + 3.3 scenario/session API) implemented and verified, status: done
+- **Decision:** Implemented both file-disjoint wave-5 stories together. 2.3:
+  `synthesize()` via `piper-tts`, lazily downloading the `en_US-lessac-medium`
+  voice on first use (same one-time-download pattern as 2.1/2.2). 3.3:
+  `GET /api/scenarios` + `POST /api/session/start`, extending `router.py`
+  (empty since 1.2) with two new routers, plus `session_store.py` for
+  in-memory session state. `epics.md` now shows 8/13 done — Epic 2 and Epic 3
+  are both fully done except for 2.4, which converges them.
+- **Bug found and fixed during verification, not a regression in prior
+  stories:** `test_scenarios.py` (1.1/1.2/2.1/3.1's tests all still pass, so
+  this wasn't previously visible) mutates the scenario loader's module-global
+  state via fixture-directory loads and never restored it, which leaked into
+  `test_session_api.py` when run in the same pytest process — 3.3's tests
+  initially failed seeing 1 fixture scenario ("duplicate-id") instead of the
+  real 5. Fixed with an autouse teardown fixture in `test_scenarios.py` that
+  reloads the real default directory after each test. Also updated
+  `test_health.py`'s now-outdated "router is empty" assertion, since 3.3
+  legitimately extends it — expected, not a regression.
+- **Made by:** direct implementation (outside the BMAD planning skills)
+- **Supersedes:** none
+
 ### 2026-09-02 — Wave 4 (stories 2.2 LLM + 3.2 starter scenarios) implemented and verified, status: done
 - **Decision:** Implemented both file-disjoint wave-4 stories together. 2.2:
   `generate_reply()` over Ollama's `/api/generate`, defaulting `OLLAMA_MODEL`

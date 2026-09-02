@@ -8,6 +8,18 @@ from app.scenarios.schema import Scenario
 FIXTURES_DIR = Path(__file__).parent / "fixtures" / "scenarios"
 
 
+@pytest.fixture(autouse=True)
+def _restore_real_scenarios():
+    """`load_scenarios()` mutates module-global state (by design, so it can
+    load eagerly at import time). Every test in this file points it at a
+    fixture directory, which would otherwise leak into other test modules
+    that expect the real backend/scenarios/ content (e.g. test_session_api.py)
+    since pytest runs all files in one process. Restore the real default
+    directory after each test here."""
+    yield
+    load_scenarios()
+
+
 def test_load_scenarios_valid_directory():
     scenarios = load_scenarios(FIXTURES_DIR / "valid")
     assert len(scenarios) == 2

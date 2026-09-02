@@ -60,7 +60,7 @@ on-device.
 |------|------|--------|--------|
 | 2.1 | stt-integration | Integrate local STT (faster-whisper): audio in → text out | done |
 | 2.2 | llm-integration | Integrate local LLM via Ollama: text in → reply text out | done |
-| 2.3 | tts-integration | Integrate local TTS (Piper): text in → audio out | ready-for-dev |
+| 2.3 | tts-integration | Integrate local TTS (Piper): text in → audio out | done |
 | 2.4 | turn-pipeline | Wire STT → scenario-aware LLM → TTS into one backend turn endpoint | ready-for-dev |
 
 **Cross-epic dependencies:**
@@ -93,7 +93,7 @@ rendering of the scenario list (Epic 4)
 |------|------|--------|--------|
 | 3.1 | scenario-schema-loader | Define scenario YAML schema + loader/validator | done |
 | 3.2 | starter-scenarios | Author 3-5 starter scenarios (restaurant, job interview, small talk, directions, shopping) | done |
-| 3.3 | scenario-selection-api | Scenario list + session-start API (`GET /api/scenarios`, `POST /api/session/start`) | ready-for-dev |
+| 3.3 | scenario-selection-api | Scenario list + session-start API (`GET /api/scenarios`, `POST /api/session/start`) | done |
 
 **Cross-epic dependencies:**
 - Blocked by: Epic 1 — needs the backend skeleton
@@ -162,9 +162,9 @@ backend session state
 No story points, velocity, or burndown. Track by COUNT only:
 
 - Total stories: 13
-- Done: 6
-- Remaining: 7
-- Completion rate: 46%
+- Done: 8
+- Remaining: 5
+- Completion rate: 62%
 
 ## Notes
 
