@@ -19,6 +19,27 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-02 — Story 1.2 (backend-skeleton) implemented and verified live, status: done
+- **Decision:** Implemented the FastAPI app skeleton (`app/main.py`, empty
+  `app/api/router.py` aggregator, `app/{api,pipeline,scenarios,state}` package
+  stubs, `backend/tests/test_health.py`). Wired the real `uvicorn` entrypoint and a
+  `/health`-targeted healthcheck into `backend/Dockerfile` and `docker-compose.yml`
+  (both owned by 1.1, not 1.2 — see below), and added a `./frontend:/app/frontend:ro`
+  bind mount so Epic 4 can populate `frontend/` with zero backend changes. All 3
+  unit tests pass (`python -m pytest`, run inside the built image) and all 6 ACs
+  verified live via `docker compose up`. Flipped 1.2's status to `done`; `epics.md`
+  now shows 2/13 done.
+- **Rationale / scope note:** touching `backend/Dockerfile` and `docker-compose.yml`
+  deviates from 1.2's declared Owned Scope (they belong to 1.1), but this exact
+  interaction was pre-announced in 1.1's own Dev Agent Record ("1.2 replaces both
+  the CMD and the healthcheck target"), so it was expected, not accidental scope
+  creep. Implementation here is sequential, not parallel dev-tool agents, so there
+  was no real collision risk — recorded for traceability against the documented
+  contract, in case a future parallel-plan re-run treats these two stories as
+  independently schedulable.
+- **Made by:** direct implementation (outside the BMAD planning skills)
+- **Supersedes:** none
+
 ### 2026-09-02 — Story 1.1 (compose-skeleton) implemented and verified live, status: done
 - **Decision:** Implemented `docker-compose.yml`, `backend/Dockerfile`,
   `backend/requirements/.gitkeep`, and `README.md` per story 1.1, then verified all 6

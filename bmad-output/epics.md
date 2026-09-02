@@ -29,7 +29,7 @@ UI (Epic 4)
 | ID | Slug | Intent | Status |
 |------|------|--------|--------|
 | 1.1 | compose-skeleton | Docker Compose skeleton (backend + ollama services, health checks) | done |
-| 1.2 | backend-skeleton | FastAPI app skeleton with config loading | ready-for-dev |
+| 1.2 | backend-skeleton | FastAPI app skeleton with config loading | done |
 
 **Cross-epic dependencies:**
 - Blocked by: none — this is the foundation epic
@@ -162,9 +162,9 @@ backend session state
 No story points, velocity, or burndown. Track by COUNT only:
 
 - Total stories: 13
-- Done: 1
-- Remaining: 12
-- Completion rate: 8%
+- Done: 2
+- Remaining: 11
+- Completion rate: 15%
 
 ## Notes
 
