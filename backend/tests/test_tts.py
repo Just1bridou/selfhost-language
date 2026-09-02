@@ -30,7 +30,7 @@ def test_synthesize_raises_on_whitespace_only_text():
 
 
 def test_synthesize_returns_valid_wav_bytes(monkeypatch):
-    monkeypatch.setattr(tts, "_get_voice", lambda: _StubVoice())
+    monkeypatch.setattr(tts, "_get_voice", lambda voice_name=None: _StubVoice())
     audio = synthesize("hello world")
     assert audio[:4] == b"RIFF"
     assert audio[8:12] == b"WAVE"
@@ -38,13 +38,13 @@ def test_synthesize_returns_valid_wav_bytes(monkeypatch):
 
 
 def test_synthesize_raises_on_backend_failure(monkeypatch):
-    monkeypatch.setattr(tts, "_get_voice", lambda: _BrokenVoice())
+    monkeypatch.setattr(tts, "_get_voice", lambda voice_name=None: _BrokenVoice())
     with pytest.raises(SynthesisError):
         synthesize("hello")
 
 
 def test_synthesize_does_not_use_network(monkeypatch):
-    monkeypatch.setattr(tts, "_get_voice", lambda: _StubVoice())
+    monkeypatch.setattr(tts, "_get_voice", lambda voice_name=None: _StubVoice())
 
     def _blocked(*args, **kwargs):
         raise AssertionError("synthesize() must not open network sockets")

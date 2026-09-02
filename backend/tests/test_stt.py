@@ -15,12 +15,12 @@ class _StubSegment:
 
 
 class _StubModel:
-    def transcribe(self, path):
+    def transcribe(self, path, language=None):
         return [_StubSegment(" hello "), _StubSegment(" world ")], SimpleNamespace(language="en")
 
 
 class _BrokenModel:
-    def transcribe(self, path):
+    def transcribe(self, path, language=None):
         raise RuntimeError("cannot decode audio")
 
 
@@ -70,7 +70,7 @@ def test_transcribe_uses_filename_extension_as_decode_hint(monkeypatch):
     seen_paths = []
 
     class _RecordingModel:
-        def transcribe(self, path):
+        def transcribe(self, path, language=None):
             seen_paths.append(path)
             return [_StubSegment("ok")], SimpleNamespace(language="en")
 

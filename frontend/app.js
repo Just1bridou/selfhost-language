@@ -69,13 +69,13 @@
     recordBtn.disabled = next === "awaiting" || next === "playing";
   }
 
-  async function startSession(scenarioId) {
+  async function startSession(scenarioId, language) {
     let response;
     try {
       response = await fetch("/api/session/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ scenario_id: scenarioId }),
+        body: JSON.stringify({ scenario_id: scenarioId, language }),
       });
     } catch (err) {
       showError(`Could not reach the backend to start a session: ${err.message}`);
@@ -95,7 +95,7 @@
     window.Transcript.clear();
     scenarioSection.hidden = true;
     conversationSection.hidden = false;
-    conversationTitle.textContent = `Scenario: ${scenarioId}`;
+    conversationTitle.textContent = `Scenario: ${scenarioId} — speaking ${body.language}`;
     setState("idle");
   }
 

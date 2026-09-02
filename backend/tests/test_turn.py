@@ -15,8 +15,11 @@ client = TestClient(app)
 FIXTURE_AUDIO = Path(__file__).parent / "fixtures" / "sample_audio.wav"
 
 
-def _start_session(scenario_id: str = "restaurant") -> str:
-    response = client.post("/api/session/start", json={"scenario_id": scenario_id})
+def _start_session(scenario_id: str = "restaurant", language: str = "en") -> str:
+    response = client.post(
+        "/api/session/start",
+        json={"scenario_id": scenario_id, "language": language},
+    )
     assert response.status_code == 200
     return response.json()["session_id"]
 
@@ -32,14 +35,14 @@ def _submit_turn(session_id: str):
 def test_turn_full_flow_returns_transcript_reply_and_audio(monkeypatch):
     captured_prompts = []
 
-    monkeypatch.setattr(turn, "transcribe", lambda audio_bytes, filename=None: "hello there")
+    monkeypatch.setattr(turn, "transcribe", lambda audio_bytes, filename=None, language=None: "hello there")
 
     def fake_generate_reply(prompt):
         captured_prompts.append(prompt)
         return "Welcome! What would you like to order?"
 
     monkeypatch.setattr(turn, "generate_reply", fake_generate_reply)
-    monkeypatch.setattr(turn, "synthesize", lambda text: b"RIFF-fake-wav-bytes")
+    monkeypatch.setattr(turn, "synthesize", lambda text, language=None: b"RIFF-fake-wav-bytes")
 
     session_id = _start_session("restaurant")
     response = _submit_turn(session_id)
@@ -62,13 +65,13 @@ def test_turn_full_flow_returns_transcript_reply_and_audio(monkeypatch):
 def test_turn_passes_uploaded_filename_through_to_transcribe(monkeypatch):
     seen = {}
 
-    def fake_transcribe(audio_bytes, filename=None):
+    def fake_transcribe(audio_bytes, filename=None, language=None):
         seen["filename"] = filename
         return "hi"
 
     monkeypatch.setattr(turn, "transcribe", fake_transcribe)
     monkeypatch.setattr(turn, "generate_reply", lambda prompt: "reply")
-    monkeypatch.setattr(turn, "synthesize", lambda text: b"fake-audio")
+    monkeypatch.setattr(turn, "synthesize", lambda text, language=None: b"fake-audio")
 
     session_id = _start_session()
     audio_bytes = FIXTURE_AUDIO.read_bytes()
@@ -81,7 +84,7 @@ def test_turn_passes_uploaded_filename_through_to_transcribe(monkeypatch):
 
 
 def test_turn_prompt_includes_growing_history(monkeypatch):
-    monkeypatch.setattr(turn, "transcribe", lambda audio_bytes, filename=None: "hi")
+    monkeypatch.setattr(turn, "transcribe", lambda audio_bytes, filename=None, language=None: "hi")
     prompts = []
 
     def fake_generate_reply(prompt):
@@ -89,7 +92,7 @@ def test_turn_prompt_includes_growing_history(monkeypatch):
         return f"reply-{len(prompts)}"
 
     monkeypatch.setattr(turn, "generate_reply", fake_generate_reply)
-    monkeypatch.setattr(turn, "synthesize", lambda text: b"fake-audio")
+    monkeypatch.setattr(turn, "synthesize", lambda text, language=None: b"fake-audio")
 
     session_id = _start_session("small-talk")
     _submit_turn(session_id)
@@ -109,7 +112,7 @@ def test_turn_missing_session_returns_404():
 
 
 def test_turn_stt_failure_returns_clear_error_and_leaves_history_untouched(monkeypatch):
-    def broken_transcribe(audio_bytes, filename=None):
+    def broken_transcribe(audio_bytes, filename=None, language=None):
         raise TranscriptionError("audio_bytes is empty")
 
     monkeypatch.setattr(turn, "transcribe", broken_transcribe)
@@ -123,7 +126,7 @@ def test_turn_stt_failure_returns_clear_error_and_leaves_history_untouched(monke
 
 
 def test_turn_llm_failure_returns_clear_error_and_leaves_history_untouched(monkeypatch):
-    monkeypatch.setattr(turn, "transcribe", lambda audio_bytes, filename=None: "hi")
+    monkeypatch.setattr(turn, "transcribe", lambda audio_bytes, filename=None, language=None: "hi")
 
     def broken_generate_reply(prompt):
         raise LLMError("ollama unreachable")
@@ -139,10 +142,10 @@ def test_turn_llm_failure_returns_clear_error_and_leaves_history_untouched(monke
 
 
 def test_turn_tts_failure_returns_clear_error_and_leaves_history_untouched(monkeypatch):
-    monkeypatch.setattr(turn, "transcribe", lambda audio_bytes, filename=None: "hi")
+    monkeypatch.setattr(turn, "transcribe", lambda audio_bytes, filename=None, language=None: "hi")
     monkeypatch.setattr(turn, "generate_reply", lambda prompt: "a reply")
 
-    def broken_synthesize(text):
+    def broken_synthesize(text, language=None):
         raise SynthesisError("voice unavailable")
 
     monkeypatch.setattr(turn, "synthesize", broken_synthesize)

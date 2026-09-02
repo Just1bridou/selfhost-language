@@ -1,15 +1,40 @@
 (function () {
   const listEl = document.getElementById("scenario-list");
   const startBtn = document.getElementById("start-session-btn");
+  const languageSelect = document.getElementById("language-select");
 
   let selectedScenarioId = null;
+  let selectedLanguage = null;
 
-  async function fetchScenarios() {
-    const response = await fetch("/api/scenarios");
+  // Both a language and a scenario are required before a session can start,
+  // so the AI always knows which language to speak.
+  function refreshStartButton() {
+    startBtn.disabled = !(selectedScenarioId && selectedLanguage);
+  }
+
+  async function fetchJson(path, what) {
+    const response = await fetch(path);
     if (!response.ok) {
-      throw new Error(`failed to load scenarios: HTTP ${response.status}`);
+      throw new Error(`failed to load ${what}: HTTP ${response.status}`);
     }
     return response.json();
+  }
+
+  function renderLanguages(languages) {
+    // Drop everything but the "— Choose a language —" placeholder, so a retry
+    // after a failed load doesn't append a duplicate set of options.
+    while (languageSelect.options.length > 1) {
+      languageSelect.remove(1);
+    }
+    for (const language of languages) {
+      const option = document.createElement("option");
+      option.value = language.code;
+      option.textContent =
+        language.native_label === language.label
+          ? language.label
+          : `${language.native_label} (${language.label})`;
+      languageSelect.appendChild(option);
+    }
   }
 
   function renderScenarios(scenarios) {
@@ -23,7 +48,7 @@
       radio.value = scenario.id;
       radio.addEventListener("change", () => {
         selectedScenarioId = scenario.id;
-        startBtn.disabled = false;
+        refreshStartButton();
       });
       label.appendChild(radio);
       label.appendChild(
@@ -46,27 +71,38 @@
     listEl.appendChild(item);
   }
 
-  async function loadScenarios() {
+  async function loadOptions() {
     try {
-      const scenarios = await fetchScenarios();
+      const [languages, scenarios] = await Promise.all([
+        fetchJson("/api/languages", "languages"),
+        fetchJson("/api/scenarios", "scenarios"),
+      ]);
+      renderLanguages(languages);
       renderScenarios(scenarios);
     } catch (err) {
-      renderLoadError(loadScenarios);
+      renderLoadError(loadOptions);
     }
   }
 
   async function init(onStart) {
-    await loadScenarios();
+    languageSelect.addEventListener("change", () => {
+      selectedLanguage = languageSelect.value || null;
+      refreshStartButton();
+    });
+
+    await loadOptions();
 
     startBtn.addEventListener("click", () => {
-      if (selectedScenarioId) {
-        onStart(selectedScenarioId);
+      if (selectedScenarioId && selectedLanguage) {
+        onStart(selectedScenarioId, selectedLanguage);
       }
     });
   }
 
   function reset() {
     selectedScenarioId = null;
+    selectedLanguage = null;
+    languageSelect.selectedIndex = 0;
     startBtn.disabled = true;
     const checked = listEl.querySelector("input[type=radio]:checked");
     if (checked) {

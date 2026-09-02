@@ -35,6 +35,24 @@ Pulled models are stored in a named Docker volume (`ollama-models`) and persist
 across `docker compose down` / `docker compose up` cycles — you only need to pull
 a given model once.
 
+### Practice languages
+
+Pick the language you're practicing on the main menu — the AI speaks it back
+to you, and it drives the whole pipeline (the prompt, the speech-to-text
+language hint, and the text-to-speech voice).
+
+Seven languages ship by default: English, French, Spanish, German, Italian,
+Portuguese, and Dutch. To add another, add an entry to
+`backend/app/languages.py` with a voice name from
+[the Piper voices list](https://huggingface.co/rhasspy/piper-voices). Voice
+models download automatically the first time a language is used, so listing a
+language you never pick costs nothing.
+
+> **Note on model quality:** the default `llama3.2:1b` is small and its
+> non-English output is noticeably rough. For serious practice in a language
+> other than English, set `OLLAMA_MODEL` to something larger (and `ollama pull`
+> it first).
+
 ### Stopping the stack
 
 ```

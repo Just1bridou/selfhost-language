@@ -25,7 +25,9 @@ def _suffix_for(filename: str | None) -> str:
     return ".wav"
 
 
-def transcribe(audio_bytes: bytes, filename: str | None = None) -> str:
+def transcribe(
+    audio_bytes: bytes, filename: str | None = None, language: str | None = None
+) -> str:
     """Transcribe `audio_bytes` to text entirely locally via faster-whisper.
 
     `filename` (e.g. "turn.webm"), if given, is used only to pick a matching
@@ -34,6 +36,12 @@ def transcribe(audio_bytes: bytes, filename: str | None = None) -> str:
     ogg, mp4...) depending on MediaRecorder support, and a mismatched
     extension has been observed to produce a "successful" but garbled
     transcription instead of a clean decode error.
+
+    `language` (ISO-639-1, e.g. "fr") pins the transcription language instead
+    of letting Whisper auto-detect. Auto-detection has been observed to guess
+    wrong on short or accented clips and return text in the wrong language
+    entirely, which matters a lot when the user is deliberately practicing a
+    language they don't speak natively.
 
     Raises TranscriptionError for empty input or audio that cannot be decoded.
     A valid recording containing no speech (e.g. silence) is not an error and
@@ -48,7 +56,7 @@ def transcribe(audio_bytes: bytes, filename: str | None = None) -> str:
         tmp_file.write(audio_bytes)
         tmp_file.flush()
         try:
-            segments, _info = model.transcribe(tmp_file.name)
+            segments, _info = model.transcribe(tmp_file.name, language=language)
             return " ".join(segment.text.strip() for segment in segments).strip()
         except Exception as exc:
             raise TranscriptionError(f"failed to transcribe audio: {exc}") from exc

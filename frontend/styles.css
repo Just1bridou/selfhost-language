@@ -79,6 +79,31 @@ section {
   }
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+#language-select {
+  font-size: 1rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--fg);
+  margin-bottom: 0.5rem;
+  max-width: 100%;
+}
+
+#scenario-picker h2 {
+  font-size: 1.05rem;
+  margin-bottom: 0.5rem;
+}
+
 #scenario-list {
   list-style: none;
   padding: 0;

@@ -23,7 +23,7 @@ def test_get_scenarios_returns_real_starter_set():
 
 
 def test_start_session_with_valid_scenario_returns_session_id():
-    response = client.post("/api/session/start", json={"scenario_id": "restaurant"})
+    response = client.post("/api/session/start", json={"scenario_id": "restaurant", "language": "en"})
     assert response.status_code == 200
     body = response.json()
     assert body["session_id"]
@@ -34,13 +34,13 @@ def test_start_session_with_valid_scenario_returns_session_id():
 
 
 def test_start_session_with_unknown_scenario_returns_4xx():
-    response = client.post("/api/session/start", json={"scenario_id": "does-not-exist"})
+    response = client.post("/api/session/start", json={"scenario_id": "does-not-exist", "language": "en"})
     assert 400 <= response.status_code < 500
 
 
 def test_concurrent_sessions_have_independent_state():
-    r1 = client.post("/api/session/start", json={"scenario_id": "restaurant"})
-    r2 = client.post("/api/session/start", json={"scenario_id": "job-interview"})
+    r1 = client.post("/api/session/start", json={"scenario_id": "restaurant", "language": "en"})
+    r2 = client.post("/api/session/start", json={"scenario_id": "job-interview", "language": "en"})
     id1, id2 = r1.json()["session_id"], r2.json()["session_id"]
     assert id1 != id2
 

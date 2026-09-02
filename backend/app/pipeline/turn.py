@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from app.languages import get_language
 from app.pipeline.llm import LLMError, generate_reply
 from app.pipeline.stt import TranscriptionError, transcribe
 from app.pipeline.tts import SynthesisError, synthesize
@@ -22,11 +23,15 @@ class TurnResult:
     audio_bytes: bytes
 
 
-def _compose_prompt(scenario, history: list[dict], user_text: str) -> str:
+def _compose_prompt(
+    scenario, history: list[dict], user_text: str, language_code: str
+) -> str:
+    language = get_language(language_code)
+    language_label = language.label if language else language_code
     lines = [
         "You are roleplaying a character for a language-practice conversation. "
-        "Stay in character for the entire conversation and respond only in "
-        f"{scenario.target_language}.",
+        f"Speak only {language_label}, even if the user says something in "
+        "another language, and stay in character for the entire conversation.",
         f"Persona: {scenario.persona_prompt}",
         f"Goal: {scenario.goal}",
         "",
@@ -62,11 +67,11 @@ def run_turn(session_id: str, audio_bytes: bytes, filename: str | None = None) -
         )
 
     try:
-        user_text = transcribe(audio_bytes, filename=filename)
+        user_text = transcribe(audio_bytes, filename=filename, language=session.language)
     except TranscriptionError as exc:
         raise TurnError(f"speech-to-text failed: {exc}", status_code=502) from exc
 
-    prompt = _compose_prompt(scenario, session.history, user_text)
+    prompt = _compose_prompt(scenario, session.history, user_text, session.language)
 
     try:
         ai_text = generate_reply(prompt)
@@ -74,7 +79,7 @@ def run_turn(session_id: str, audio_bytes: bytes, filename: str | None = None) -
         raise TurnError(f"language model failed: {exc}", status_code=502) from exc
 
     try:
-        audio_reply = synthesize(ai_text)
+        audio_reply = synthesize(ai_text, language=session.language)
     except SynthesisError as exc:
         raise TurnError(f"text-to-speech failed: {exc}", status_code=502) from exc
 

@@ -388,8 +388,12 @@ test run.
    measured.
 2. Ollama is the LLM runtime, chosen as the simplest to containerize/self-host —
    also made without explicit user confirmation.
-3. The initial release targets one practice language, with scenario/model config
-   structured to add more languages later.
+3. ~~The initial release targets one practice language, with scenario/model config
+   structured to add more languages later.~~ **Superseded 2026-09-02:** the user
+   confirmed they want multi-language support. Story 6.1 added a main-menu
+   language picker; the session's chosen language now drives the LLM prompt, the
+   Piper TTS voice, and the Whisper language hint. Seven languages ship by
+   default (en/fr/es/de/it/pt/nl) via `backend/app/languages.py`.
 
 ### Constraints
 

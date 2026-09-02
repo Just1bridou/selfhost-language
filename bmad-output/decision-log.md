@@ -77,6 +77,42 @@ or delete past entries — supersede them with a new entry that references the o
 - **Made by:** direct implementation (outside the BMAD planning skills)
 - **Supersedes:** none
 
+### 2026-09-02 — Scope change: multi-language support (story 6.1), reversing the single-language assumption
+- **Decision:** User asked to force a language choice on the main menu so the
+  AI knows which language to speak. This directly reverses tech-spec.md's
+  assumption #3 ("initial release targets one practice language"), which was
+  flagged from day one as made **without user confirmation** — so this is the
+  assumption being corrected by its owner, exactly the case that entry
+  anticipated. Added Epic 6 with story 6.1, marked the tech-spec assumption
+  superseded rather than deleting it (the reasoning trail matters).
+- **Design:** a single `languages.py` registry maps code → prompt label,
+  native label, and Piper voice. The session's chosen language — not the
+  scenario file's `target_language` — drives three separate things that all
+  had to change together: the LLM prompt, the TTS voice (Piper voices are
+  language-specific, so this needed a per-language voice map and a per-voice
+  cache, not just a prompt tweak), and the Whisper language hint. Seven
+  languages ship by default; voices download lazily so unused ones cost
+  nothing.
+- **Deliberate breaking change:** `language` is now **required** on
+  `POST /api/session/start` rather than defaulting to English, so a frontend
+  bug can't silently produce English audio for a French session. Updated the
+  affected tests in 3.3's and 2.4's suites accordingly.
+- **Left vestigial on purpose:** the scenario schema's `target_language`
+  field is no longer used for prompting (scenarios are language-neutral
+  role-plays) but stays in the schema to avoid breaking 3.1/3.2's contract.
+  Worth removing in a future cleanup.
+- **Verified live in French, not just unit-tested:** a real French session
+  transcribed real French speech correctly, got an in-character French reply,
+  and produced French audio — confirmed by checking that only the French
+  voice model was downloaded, and by transcribing the generated reply back
+  with auto-detection and getting French.
+- **Known limitation surfaced:** the default `llama3.2:1b` produces rough
+  French. Non-English practice will want a larger `OLLAMA_MODEL` — the
+  smaller default was itself a documented tradeoff (see the wave-4 entry).
+- **Made by:** direct implementation (outside the BMAD planning skills)
+- **Supersedes:** the language-scope portion of the 2026-09-02 tech-spec
+  assumptions entry
+
 ### 2026-09-02 — Story 5.2 confirmed by user in a real browser, status: done — backlog complete (13/13)
 - **Decision:** User confirmed the Dismiss-button fix works and the rest of
   the error-states behavior is working. Flipped 5.2 from `review` to `done`.

@@ -157,14 +157,41 @@ backend session state
 
 ---
 
+## Epic 6: Multi-Language Support
+
+**Goal:** Let the user choose which language they're practicing on the main
+menu, and make the whole voice pipeline follow that choice.
+
+**In scope (cited):**
+- Reverses the single-target-language assumption [Source: tech-spec.md#assumptions]
+
+**Architecture touchpoints:** language registry, session state, Scenario
+Engine prompt composition, STT language hint, per-language Piper voice
+[Source: tech-spec.md#key-components]
+
+**Out of scope:** translating the UI itself; per-language scenario content
+(the scenarios are language-neutral role-plays)
+
+**Stories (ordered):**
+
+| ID | Slug | Intent | Status |
+|------|------|--------|--------|
+| 6.1 | multi-language-support | Choose the practice language on the main menu; pipeline follows it | review |
+
+**Cross-epic dependencies:**
+- Blocked by: Epics 2, 3, 4 (all `done`) — extends the pipeline, session API, and main menu
+- Blocks: none
+
+---
+
 ## Delivery Tracking (count-based)
 
 No story points, velocity, or burndown. Track by COUNT only:
 
-- Total stories: 13
+- Total stories: 14 (13 original + 1 added post-completion)
 - Done: 13
-- Remaining: 0
-- Completion rate: 100%
+- Remaining: 1 (6.1, at `review`)
+- Completion rate: 93%
 
 ## Notes
 
