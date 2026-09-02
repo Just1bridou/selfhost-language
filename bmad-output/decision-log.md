@@ -77,6 +77,16 @@ or delete past entries — supersede them with a new entry that references the o
 - **Made by:** direct implementation (outside the BMAD planning skills)
 - **Supersedes:** none
 
+### 2026-09-02 — Story 5.2 confirmed by user in a real browser, status: done — backlog complete (13/13)
+- **Decision:** User confirmed the Dismiss-button fix works and the rest of
+  the error-states behavior is working. Flipped 5.2 from `review` to `done`.
+  All 13 stories across all 5 epics are now `done`; `epics.md` shows 13/13,
+  100% complete. This closes out the Quick Flow backlog planned back in
+  `tech-spec.md` and sharded in `epics.md`/`bmad-output/stories/`.
+- **Made by:** direct implementation (outside the BMAD planning skills),
+  confirmed by the user
+- **Supersedes:** none
+
 ### 2026-09-02 — Bug fix: error-banner "Dismiss" button never hid the banner
 - **Decision:** User reported Dismiss doing nothing. Root cause: `#error-banner
   { display: flex; }` (specificity 1-0-0) overrode the browser's default
