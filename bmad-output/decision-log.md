@@ -19,6 +19,28 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-02 — Wave 7 (story 4.1, core web UI) implemented, status: review (not done)
+- **Decision:** Implemented the full frontend shell: scenario picker, record
+  button wrapping `MediaRecorder`, a 4-state status indicator
+  (idle/recording/awaiting/playing), and turn submission with base64 audio
+  playback. Verified the JS is syntax-valid and, critically, replayed the
+  *exact* HTTP call sequence `app.js` performs (scenarios → session start →
+  multipart turn submission → 404-on-invalid-id) with a Node script using the
+  same `fetch`/`FormData`/`Blob` web APIs — all succeeded against the real
+  running backend. Left status at `review`, not `done`, in `epics.md` and the
+  story file.
+- **Rationale:** this session has no connected browser-automation tool, so
+  actual DOM rendering, click-through UX, real microphone capture, and audio
+  autoplay were never visually confirmed — only their HTTP-layer correctness
+  was. The story's own Testing section calls for manual browser testing with
+  no headless harness mandated, so honesty about what's unverified matters
+  more than matching the "done" pattern of prior backend-only stories. Asked
+  the user to do a quick manual pass (`docker compose up`, open
+  `localhost:8000`, record → stop → confirm playback) before flipping to
+  `done`.
+- **Made by:** direct implementation (outside the BMAD planning skills)
+- **Supersedes:** none
+
 ### 2026-09-02 — Wave 6 (story 2.4, turn pipeline) implemented and verified, status: done — Epic 2 and Epic 3 fully complete
 - **Decision:** Implemented `POST /api/session/{id}/turn`, wiring STT → a
   scenario-aware prompt → LLM → TTS into one endpoint, extending

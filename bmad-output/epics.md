@@ -120,7 +120,7 @@ the AI's spoken reply, and follow along with a live transcript.
 
 | ID | Slug | Intent | Status |
 |------|------|--------|--------|
-| 4.1 | web-ui-core | Minimal web UI: scenario picker, record button, reply playback | ready-for-dev |
+| 4.1 | web-ui-core | Minimal web UI: scenario picker, record button, reply playback | review |
 | 4.2 | live-transcript | Live transcript display for both sides of the conversation | ready-for-dev |
 
 **Cross-epic dependencies:**

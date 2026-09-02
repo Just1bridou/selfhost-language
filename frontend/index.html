@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Self-Hosted Voice Language Tutor</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <main>
+    <h1>Self-Hosted Voice Language Tutor</h1>
+
+    <section id="scenario-picker">
+      <h2>Choose a scenario</h2>
+      <ul id="scenario-list"></ul>
+      <button id="start-session-btn" disabled>Start session</button>
+    </section>
+
+    <section id="conversation" hidden>
+      <h2 id="conversation-title"></h2>
+      <p id="status-indicator" aria-live="polite" data-state="idle">Idle</p>
+      <button id="record-btn">Record</button>
+      <audio id="reply-audio"></audio>
+    </section>
+  </main>
+
+  <script src="/components/scenario_picker.js"></script>
+  <script src="/components/recorder.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
