@@ -5,6 +5,18 @@
   const statusEl = document.getElementById("status-indicator");
   const recordBtn = document.getElementById("record-btn");
   const replyAudio = document.getElementById("reply-audio");
+  const transcriptPanel = document.getElementById("transcript-panel");
+
+  // Created here rather than in index.html: #conversation is already only
+  // ever visible while a session is active, so inserting this button as one
+  // of its children satisfies "visible whenever a session is active" (AC#1)
+  // with no extra show/hide logic of its own.
+  const endSessionBtn = document.createElement("button");
+  endSessionBtn.id = "end-session-btn";
+  endSessionBtn.type = "button";
+  endSessionBtn.textContent = "End session";
+  endSessionBtn.style.marginTop = "1rem";
+  conversationSection.insertBefore(endSessionBtn, transcriptPanel);
 
   let sessionId = null;
   let state = "idle"; // idle | recording | awaiting | playing
@@ -76,6 +88,27 @@
     setState("playing");
     await replyAudio.play();
   }
+
+  function endSession() {
+    // Best-effort cleanup if a recording or playback was in flight, so
+    // ending mid-turn doesn't leave a stray mic stream open or the UI in a
+    // state that looks stuck (edge case from Testing).
+    if (state === "recording") {
+      window.Recorder.stop().catch(() => {});
+    }
+    replyAudio.pause();
+    replyAudio.removeAttribute("src");
+    replyAudio.load();
+
+    sessionId = null;
+    window.Transcript.clear();
+    window.ScenarioPicker.reset();
+    conversationSection.hidden = true;
+    scenarioSection.hidden = false;
+    setState("idle");
+  }
+
+  endSessionBtn.addEventListener("click", endSession);
 
   replyAudio.addEventListener("ended", () => {
     setState("idle");

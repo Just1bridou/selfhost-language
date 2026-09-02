@@ -56,6 +56,21 @@ or delete past entries — supersede them with a new entry that references the o
   investigating a user-reported bug
 - **Supersedes:** none
 
+### 2026-09-02 — Wave 9 (story 5.1, session end/restart) implemented, status: review (not done)
+- **Decision:** Added an "End session" button, created and inserted by
+  `app.js` directly into `#conversation` rather than declared in
+  `index.html` (that section is already only visible during an active
+  session, so this satisfies AC#1 for free and needed no new cross-story
+  file edits — a cleaner outcome than 4.2's wave). `endSession()` best-effort
+  stops any in-flight recording/playback, clears session id + transcript +
+  scenario-picker selection, and swaps back to the picker view. Added a
+  matching `reset()` to `scenario_picker.js`. No backend or Docker changes —
+  confirmed AC#3/#5 need none, since the existing `startSession()` call path
+  already creates a fully independent new session. Left at `review`, same
+  reason as 4.1/4.2: no connected browser tool this session.
+- **Made by:** direct implementation (outside the BMAD planning skills)
+- **Supersedes:** none
+
 ### 2026-09-02 — Wave 8 (story 4.2, live transcript) implemented, status: review (not done)
 - **Decision:** Added `transcript.js` (`clear()`/`appendTurn()`) and hooked it
   into `app.js`'s existing `startSession()`/`submitTurn()`. Also edited

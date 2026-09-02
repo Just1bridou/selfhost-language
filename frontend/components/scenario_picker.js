@@ -56,5 +56,14 @@
     });
   }
 
-  window.ScenarioPicker = { init };
+  function reset() {
+    selectedScenarioId = null;
+    startBtn.disabled = true;
+    const checked = listEl.querySelector("input[type=radio]:checked");
+    if (checked) {
+      checked.checked = false;
+    }
+  }
+
+  window.ScenarioPicker = { init, reset };
 })();

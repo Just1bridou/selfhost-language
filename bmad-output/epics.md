@@ -148,7 +148,7 @@ backend session state
 
 | ID | Slug | Intent | Status |
 |------|------|--------|--------|
-| 5.1 | session-end-restart | Session end/restart flow without restarting containers | ready-for-dev |
+| 5.1 | session-end-restart | Session end/restart flow without restarting containers | review |
 | 5.2 | error-states | User-facing error states (mic denied, model unavailable, pipeline failure) | ready-for-dev |
 
 **Cross-epic dependencies:**
