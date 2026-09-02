@@ -19,6 +19,23 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-02 — Wave 8 (story 4.2, live transcript) implemented, status: review (not done)
+- **Decision:** Added `transcript.js` (`clear()`/`appendTurn()`) and hooked it
+  into `app.js`'s existing `startSession()`/`submitTurn()`. Also edited
+  `index.html` and `styles.css` (both owned by 4.1, not in 4.2's declared
+  scope) — necessary, not optional: the panel needs a DOM container + script
+  tag somewhere, and AC#3's auto-scroll is meaningless without CSS giving the
+  panel a bounded height. Verified JS syntax and re-ran the 4.1 HTTP-sequence
+  regression check against the live backend (unaffected, since this story
+  only adds transcript calls around existing logic). Left at `review`, same
+  reason as 4.1: no connected browser tool this session, so actual rendering,
+  speaker-color labeling, scroll behavior, and clear-on-new-session are
+  unverified by me.
+- **Rationale:** consistent with 4.1's precedent — don't claim `done` for
+  behavior only a real browser can confirm.
+- **Made by:** direct implementation (outside the BMAD planning skills)
+- **Supersedes:** none
+
 ### 2026-09-02 — Story 4.1 confirmed by user in a real browser, status: done
 - **Decision:** User manually tested the running stack (scenario pick →
   record → stop → reply played back, status text changing through each

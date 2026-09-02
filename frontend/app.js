@@ -36,6 +36,7 @@
     const body = await response.json();
     sessionId = body.session_id;
 
+    window.Transcript.clear();
     scenarioSection.hidden = true;
     conversationSection.hidden = false;
     conversationTitle.textContent = `Scenario: ${scenarioId}`;
@@ -58,6 +59,7 @@
     }
 
     const body = await response.json();
+    window.Transcript.appendTurn(body.user_text, body.ai_text);
     replyAudio.src = `data:audio/wav;base64,${body.audio_base64}`;
 
     setState("playing");

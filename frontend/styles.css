@@ -95,6 +95,34 @@ button:disabled {
   color: #065f46;
 }
 
+#transcript-panel {
+  max-height: 240px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  margin-top: 1rem;
+  background: var(--bg);
+}
+
+.transcript-entry {
+  margin: 0.35rem 0;
+  line-height: 1.4;
+  overflow-wrap: break-word;
+}
+
+.transcript-speaker {
+  font-weight: 600;
+}
+
+.transcript-entry[data-speaker="user"] .transcript-speaker {
+  color: var(--accent);
+}
+
+.transcript-entry[data-speaker="ai"] .transcript-speaker {
+  color: #059669;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #121212;
