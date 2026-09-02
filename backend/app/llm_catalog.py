@@ -10,10 +10,15 @@ Spanish and German, so the UI can steer people toward a bigger model when
 they're practicing something else.
 
 `size_gb` is the real download size, summed from each tag's registry
-manifest. That matters most for the Gemma 3n entries: their "E2B"/"E4B"
-names refer to the *effective* parameters used at inference (Per-Layer
-Embeddings keep the memory footprint down), not to what they occupy on disk —
-E4B stores 7.5 GB, more than any 7B model here.
+manifest. That matters most for Gemma 4's "E" variants: E2B/E4B name the
+*effective* parameters used at inference (Per-Layer Embeddings keep the memory
+footprint down), not what they occupy on disk. It is genuinely counter-
+intuitive — `gemma4:e4b` stores 9.6 GB, more than the denser `gemma4:12b` at
+7.6 GB — so the size shown here is measured, never inferred from the name.
+
+Gemma 4 supersedes the Gemma 3n line, so only the current generation of the
+on-device family is listed; the 26B and 31B Gemma 4 tags are omitted as
+impractical (18-20 GB) for the CPU-only box this project targets.
 """
 
 from dataclasses import dataclass
@@ -86,18 +91,25 @@ CATALOG: tuple[CatalogModel, ...] = (
         "Excellent multilingual quality, but heavy to run.",
     ),
     CatalogModel(
-        "gemma3n:e2b",
-        "Gemma 3n · E2B",
-        5.6,
+        "gemma4:e2b",
+        "Gemma 4 · E2B",
+        7.2,
         True,
-        "Built for on-device use: runs like a 2B model but stores 5.6 GB.",
+        "Newest on-device Gemma: runs like a 2B model but stores 7.2 GB.",
     ),
     CatalogModel(
-        "gemma3n:e4b",
-        "Gemma 3n · E4B",
-        7.5,
+        "gemma4:12b",
+        "Gemma 4 · 12B",
+        7.6,
         True,
-        "Same family, more capable. Runs like a 4B model but stores 7.5 GB.",
+        "Denser than E4B and smaller on disk, but needs far more memory to run.",
+    ),
+    CatalogModel(
+        "gemma4:e4b",
+        "Gemma 4 · E4B",
+        9.6,
+        True,
+        "Most capable on-device Gemma 4. Runs like a 4B model, stores 9.6 GB.",
     ),
 )
 

@@ -77,6 +77,28 @@ or delete past entries — supersede them with a new entry that references the o
 - **Made by:** direct implementation (outside the BMAD planning skills)
 - **Supersedes:** none
 
+### 2026-09-02 — Corrected: Gemma 4 exists; catalogue now lists it instead of Gemma 3n
+- **Decision:** User asked for Gemma 4 and I answered about Gemma 3n, assuming
+  they had confused the two because the "E2B/E4B" naming originates there.
+  **That was wrong.** Gemma 4 was released after this assistant's January 2026
+  knowledge cutoff. Verified against the live Hugging Face API
+  (`google/gemma-4-E2B`, `-E4B`, `-12B-it`, `-26B-A4B`, `-31B`) and the Ollama
+  library, where `gemma4:{e2b,e4b,12b,26b,31b}` all resolve.
+- **Lesson worth keeping:** the model-name question should have been answered
+  by querying the registries first, exactly as the sizes were, rather than
+  from memory. Anything about model availability is cutoff-sensitive.
+- **Catalogue now lists** `gemma4:e2b` (7.2 GB), `gemma4:12b` (7.6 GB) and
+  `gemma4:e4b` (9.6 GB), all measured from registry manifests. The Gemma 3n
+  entries were removed: Gemma 4 supersedes that on-device line, and carrying
+  two generations of the same family is clutter in a curated list. The 26B and
+  31B tags are omitted as impractical (18-20 GB) for a CPU-only box.
+- **The "E" naming misleads in a new way here:** `gemma4:e4b` stores 9.6 GB —
+  *more* than the denser `gemma4:12b` at 7.6 GB — because Per-Layer Embeddings
+  inflate the download while keeping inference memory low. Sizes in the
+  catalogue are therefore always measured, never inferred from the name.
+- **Made by:** direct implementation (outside the BMAD planning skills)
+- **Supersedes:** the Gemma 3n portion of the entry below
+
 ### 2026-09-02 — Added Gemma 3n to the catalogue, and a disk-space guard that exposed a misleading check
 - **Decision:** User asked why Gemma 3n E2B/E4B weren't offered. Checked their
   registry manifests: they exist, but **E2B is 5.6 GB and E4B is 7.5 GB on

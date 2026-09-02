@@ -191,17 +191,19 @@ def test_pull_refuses_a_second_concurrent_download():
         )
 
 
-def test_catalog_includes_gemma3n_with_real_download_sizes():
+def test_catalog_includes_gemma4_with_real_download_sizes():
     """The E2B/E4B names refer to effective inference parameters, not disk
-    footprint — the catalogue must show the real download size so a 7.5 GB
-    model isn't mistaken for a small one."""
+    footprint, so sizes here are measured from the registry manifests rather
+    than guessed from the name."""
     catalog = client.get("/api/models").json()["llm"]["catalog"]
     by_name = {m["name"]: m for m in catalog}
 
-    assert by_name["gemma3n:e2b"]["size_gb"] == 5.6
-    assert by_name["gemma3n:e4b"]["size_gb"] == 7.5
-    # E4B really is heavier on disk than the 7B models it sits next to
-    assert by_name["gemma3n:e4b"]["size_gb"] > by_name["qwen2.5:7b"]["size_gb"]
+    assert by_name["gemma4:e2b"]["size_gb"] == 7.2
+    assert by_name["gemma4:e4b"]["size_gb"] == 9.6
+    # The counter-intuitive part: E4B outweighs the *denser* 12B on disk
+    assert by_name["gemma4:e4b"]["size_gb"] > by_name["gemma4:12b"]["size_gb"]
+    # Gemma 4 supersedes the 3n line, which is no longer listed
+    assert not any(m["name"].startswith("gemma3n:") for m in catalog)
 
 
 def test_models_endpoint_reports_free_disk_space():
