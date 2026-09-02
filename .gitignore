@@ -13,3 +13,6 @@ venv/
 # Editors
 .vscode/
 .idea/
+
+# Runtime model settings written by the app
+data/

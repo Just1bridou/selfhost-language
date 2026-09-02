@@ -184,14 +184,43 @@ Engine prompt composition, STT language hint, per-language Piper voice
 
 ---
 
+## Epic 7: Model Configuration & Difficulty
+
+**Goal:** Let the user see and change which AI models run, and choose how
+simply the AI should speak.
+
+**In scope (cited):**
+- Makes the LLM choice changeable, following up on the small-default-model
+  tradeoff [Source: decision-log.md 2026-09-02 wave-4 entry]
+- Turns the scenario `difficulty` field from a decorative badge into a real
+  per-session choice that reaches the prompt
+
+**Architecture touchpoints:** persisted settings store, model catalogue and
+background pull, difficulty registry, prompt composition, settings panel
+
+**Out of scope:** fine-tuning models; per-scenario difficulty overrides
+
+**Stories (ordered):**
+
+| ID | Slug | Intent | Status |
+|------|------|--------|--------|
+| 7.1 | model-configuration | See and change the STT/LLM/TTS models, download new ones | review |
+| 7.2 | difficulty-levels | Choose one of four levels; lower levels use simpler words | review |
+
+**Cross-epic dependencies:**
+- Blocked by: Epics 2, 3, 6 (all done)
+- Blocks: none
+
+---
+
 ## Delivery Tracking (count-based)
 
 No story points, velocity, or burndown. Track by COUNT only:
 
-- Total stories: 14 (13 original + 1 added post-completion)
+- Total stories: 16 (13 original + 3 added post-completion)
 - Done: 13
-- Remaining: 1 (6.1, at `review`)
-- Completion rate: 93%
+- Remaining: 3 (6.1, 7.1, 7.2 — all at `review`)
+- Completion rate: 81%
 
 ## Notes
 

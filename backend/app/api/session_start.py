@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
+from app.difficulty import get_difficulty
 from app.languages import get_language
 from app.scenarios.loader import get_scenario
 from app.state.session_store import create_session
@@ -11,11 +12,13 @@ router = APIRouter()
 class StartSessionRequest(BaseModel):
     scenario_id: str
     language: str
+    difficulty: str
 
 
 class StartSessionResponse(BaseModel):
     session_id: str
     language: str
+    difficulty: str
 
 
 @router.post("/api/session/start", response_model=StartSessionResponse)
@@ -32,5 +35,17 @@ def start_session(request: StartSessionRequest) -> StartSessionResponse:
             status_code=400, detail=f"unsupported language: {request.language!r}"
         )
 
-    session = create_session(request.scenario_id, language=language.code)
-    return StartSessionResponse(session_id=session.id, language=session.language)
+    difficulty = get_difficulty(request.difficulty)
+    if difficulty is None:
+        raise HTTPException(
+            status_code=400, detail=f"unsupported difficulty: {request.difficulty!r}"
+        )
+
+    session = create_session(
+        request.scenario_id, language=language.code, difficulty=difficulty.code
+    )
+    return StartSessionResponse(
+        session_id=session.id,
+        language=session.language,
+        difficulty=session.difficulty,
+    )

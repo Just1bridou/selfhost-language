@@ -49,9 +49,27 @@ models download automatically the first time a language is used, so listing a
 language you never pick costs nothing.
 
 > **Note on model quality:** the default `llama3.2:1b` is small and its
-> non-English output is noticeably rough. For serious practice in a language
-> other than English, set `OLLAMA_MODEL` to something larger (and `ollama pull`
-> it first).
+> non-English output is noticeably rough. For serious practice in another
+> language, open **Models** in the header and download a bigger one — see
+> below.
+
+### Choosing the AI models
+
+Open **Models** in the header to see the three engines in use — speech to
+text (faster-whisper), the language model (Ollama) and the voice (Piper) —
+and change any of them. Changes are saved to `data/settings.json` and survive
+a restart.
+
+The panel also lists recommended models you can download with one click,
+including small Gemma models. Bigger models speak non-English languages far
+better but need more disk and run slower on CPU.
+
+### Difficulty levels
+
+Pick one of four levels on the main menu — Beginner (A1), Elementary (A2),
+Intermediate (B1–B2) or Advanced (C1+). The level is injected into the
+model's instructions, so a lower level genuinely produces shorter sentences
+and simpler words rather than just relabelling the session.
 
 ### Stopping the stack
 

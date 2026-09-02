@@ -24,13 +24,40 @@
           <p>Practice speaking out loud — everything runs on your machine.</p>
         </div>
       </div>
-      <span class="badge-local" title="No audio or transcript leaves this device">
-        <span class="badge-dot" aria-hidden="true"></span>
-        100% local
-      </span>
+      <div class="header-actions">
+        <span class="badge-local" title="No audio or transcript leaves this device">
+          <span class="badge-dot" aria-hidden="true"></span>
+          100% local
+        </span>
+        <button id="settings-toggle" class="btn btn-ghost btn-sm" type="button"
+                aria-expanded="false" aria-controls="settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
+          Models
+        </button>
+      </div>
     </header>
 
     <main id="main">
+      <section id="settings" class="card settings-card" hidden>
+        <div class="settings-head">
+          <div>
+            <p class="eyebrow">Configuration</p>
+            <h2 class="step-title">AI models in use</h2>
+          </div>
+        </div>
+        <div id="settings-body"></div>
+        <div class="settings-foot">
+          <p id="settings-note" class="settings-note" aria-live="polite"></p>
+          <button id="settings-save" class="btn btn-primary btn-sm" type="button">
+            Save changes
+          </button>
+        </div>
+      </section>
+
       <section id="scenario-picker" class="card">
         <div class="step">
           <p class="eyebrow">Step 1 — Language</p>
@@ -41,7 +68,15 @@
         <hr class="divider" />
 
         <div class="step">
-          <p class="eyebrow">Step 2 — Scenario</p>
+          <p class="eyebrow">Step 2 — Level</p>
+          <h2 class="step-title">How simply should the AI speak?</h2>
+          <div id="difficulty-options" class="pill-group pill-group-stack"></div>
+        </div>
+
+        <hr class="divider" />
+
+        <div class="step">
+          <p class="eyebrow">Step 3 — Scenario</p>
           <h2 class="step-title">Pick a situation to rehearse</h2>
           <div id="scenario-list" class="scenario-grid"></div>
         </div>
@@ -91,6 +126,7 @@
     </footer>
   </div>
 
+  <script src="/components/settings.js"></script>
   <script src="/components/scenario_picker.js"></script>
   <script src="/components/recorder.js"></script>
   <script src="/components/transcript.js"></script>

@@ -6,6 +6,11 @@ services:
       - "8000:8000"
     volumes:
       - ./frontend:/app/frontend:ro
+      - ./data:/app/data
+      # Model caches: without these, every container recreate re-downloads
+      # whichever STT model and Piper voices you picked in settings.
+      - piper-voices:/app/voices
+      - whisper-cache:/root/.cache/huggingface
     networks:
       - tutor
     depends_on:
@@ -39,3 +44,5 @@ networks:
 
 volumes:
   ollama-models:
+  piper-voices:
+  whisper-cache:

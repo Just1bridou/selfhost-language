@@ -18,7 +18,7 @@ FIXTURE_AUDIO = Path(__file__).parent / "fixtures" / "sample_audio.wav"
 def _start_session(scenario_id: str = "restaurant", language: str = "en") -> str:
     response = client.post(
         "/api/session/start",
-        json={"scenario_id": scenario_id, "language": language},
+        json={"scenario_id": scenario_id, "language": language, "difficulty": "beginner"},
     )
     assert response.status_code == 200
     return response.json()["session_id"]

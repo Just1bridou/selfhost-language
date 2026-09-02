@@ -5,6 +5,7 @@ from functools import lru_cache
 from pathlib import Path
 
 from app.languages import DEFAULT_LANGUAGE, LANGUAGES, get_language
+from app.settings import get_tts_voice
 
 
 class SynthesisError(Exception):
@@ -24,6 +25,9 @@ def _voice_for_language(code: str | None) -> str:
     """
     language = get_language(code)
     if language:
+        override = get_tts_voice(code)
+        if override and override in language.voices:
+            return override
         return language.voice
     return os.environ.get("TTS_VOICE", LANGUAGES[DEFAULT_LANGUAGE].voice)
 

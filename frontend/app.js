@@ -86,13 +86,23 @@
     recordBtn.disabled = next === "awaiting" || next === "playing";
   }
 
-  async function startSession({ scenarioId, scenarioTitle, language, languageLabel }) {
+  async function startSession({
+    scenarioId,
+    scenarioTitle,
+    language,
+    languageLabel,
+    difficulty,
+  }) {
     let response;
     try {
       response = await fetch("/api/session/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ scenario_id: scenarioId, language }),
+        body: JSON.stringify({
+          scenario_id: scenarioId,
+          language,
+          difficulty,
+        }),
       });
     } catch (err) {
       showError("Could not reach the backend to start a session. Is it still running?");
@@ -116,6 +126,11 @@
     tag.className = "lang-tag";
     tag.textContent = languageLabel || body.language;
     conversationTitle.appendChild(tag);
+
+    const levelTag = document.createElement("span");
+    levelTag.className = "lang-tag level-tag";
+    levelTag.textContent = body.difficulty;
+    conversationTitle.appendChild(levelTag);
 
     scenarioSection.hidden = true;
     conversationSection.hidden = false;
@@ -247,5 +262,6 @@
     }
   });
 
+  window.Settings.init({ onError: showError });
   window.ScenarioPicker.init(startSession);
 })();

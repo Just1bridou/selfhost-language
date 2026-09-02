@@ -12,7 +12,7 @@ client = TestClient(app)
 def _start_session(scenario_id: str = "restaurant", language: str = "fr"):
     return client.post(
         "/api/session/start",
-        json={"scenario_id": scenario_id, "language": language},
+        json={"scenario_id": scenario_id, "language": language, "difficulty": "beginner"},
     )
 
 
@@ -43,9 +43,14 @@ def test_start_session_rejects_unsupported_language():
     assert "klingon" in response.json()["detail"]
 
 
-def test_start_session_requires_a_language():
-    response = client.post("/api/session/start", json={"scenario_id": "restaurant"})
-    assert response.status_code == 422
+def test_start_session_requires_a_language_and_difficulty():
+    assert client.post(
+        "/api/session/start",
+        json={"scenario_id": "restaurant", "difficulty": "beginner"},
+    ).status_code == 422
+    assert client.post(
+        "/api/session/start", json={"scenario_id": "restaurant", "language": "fr"}
+    ).status_code == 422
 
 
 def test_prompt_instructs_the_ai_to_speak_the_session_language(monkeypatch):

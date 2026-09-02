@@ -77,6 +77,44 @@ or delete past entries — supersede them with a new entry that references the o
 - **Made by:** direct implementation (outside the BMAD planning skills)
 - **Supersedes:** none
 
+### 2026-09-02 — Model configuration (7.1) and difficulty levels (7.2)
+- **Decision:** Two user-requested features, both turning something fixed into
+  something chosen. (7.1) A settings panel now shows all three engines and
+  lets the STT size, LLM model and per-language voice be changed at runtime,
+  persisted to a bind-mounted `data/settings.json`, with a curated catalogue
+  of downloadable models — including the small Gemma models that were asked
+  for — pulled in the background with live progress so no terminal is needed.
+  (7.2) Difficulty became four real levels (A1/A2/B1–B2/C1+) chosen on the
+  main menu, each injecting a distinct instruction into the LLM prompt.
+- **The difficulty field was previously decorative.** Scenarios have carried
+  a `difficulty` since 3.1, but it only ever rendered a badge — it never
+  reached the model, so it changed nothing about how the AI spoke. It is now
+  a per-session user choice, and the scenario field joins `target_language`
+  as vestigial metadata kept to avoid breaking 3.1/3.2's schema. The badge was
+  removed from the cards, since showing "beginner" on a scenario while the
+  user had chosen "Advanced" put two competing notions on one screen.
+- **Caches had to become keyed, not single-slot.** `stt._get_model()` and
+  `tts._get_voice()` were `lru_cache(maxsize=1)`, which would have kept
+  serving the *old* model after a change — the setting would have appeared to
+  save while nothing actually changed. Both now cache per model/voice name.
+- **`OLLAMA_MODEL` semantics changed:** it seeds the settings store on first
+  read rather than being consulted per call. `test_llm.py`'s env-var test was
+  updated to assert the new contract rather than being worked around.
+- **Closed a wave-6 follow-up while here:** added `piper-voices` and
+  `whisper-cache` volumes. Without them every container recreate
+  re-downloaded whichever models you'd just chosen, which would have made
+  this feature actively annoying rather than useful.
+- **Verified live, not just unit-tested:** settings survived a
+  `docker compose restart`; a French turn downloaded and used the *chosen*
+  voice (`fr_FR-tom-medium`, not the default); `gemma3:1b` was pulled end to
+  end through the API (0→27→67→100%→done), appeared as installed, was
+  selected, and generated a reply. For difficulty, the same scenario and the
+  same audio gave "Hello. Welcome. What can I get for you?" (8 words) at
+  Beginner versus a 64-word reply using "establishment", "complimentary
+  beverage" and "peruse our menu" at Advanced — with the same 1B model.
+- **Made by:** direct implementation (outside the BMAD planning skills)
+- **Supersedes:** none
+
 ### 2026-09-02 — UI redesign: modern, professional, light-only interface
 - **Decision:** User asked for a "super interface moderne, très
   professionnelle" and explicitly **light, not dark**. Rebuilt the frontend's

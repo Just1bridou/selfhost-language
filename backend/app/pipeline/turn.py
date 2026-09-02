@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from app.difficulty import get_difficulty
 from app.languages import get_language
 from app.pipeline.llm import LLMError, generate_reply
 from app.pipeline.stt import TranscriptionError, transcribe
@@ -24,18 +25,26 @@ class TurnResult:
 
 
 def _compose_prompt(
-    scenario, history: list[dict], user_text: str, language_code: str
+    scenario,
+    history: list[dict],
+    user_text: str,
+    language_code: str,
+    difficulty_code: str,
 ) -> str:
     language = get_language(language_code)
     language_label = language.label if language else language_code
+    difficulty = get_difficulty(difficulty_code)
+
     lines = [
         "You are roleplaying a character for a language-practice conversation. "
         f"Speak only {language_label}, even if the user says something in "
         "another language, and stay in character for the entire conversation.",
         f"Persona: {scenario.persona_prompt}",
         f"Goal: {scenario.goal}",
-        "",
     ]
+    if difficulty:
+        lines.append(f"Level: {difficulty.prompt_instruction}")
+    lines.append("")
     for turn in history:
         lines.append(f"User: {turn['user_text']}")
         lines.append(f"Assistant: {turn['ai_text']}")
@@ -71,7 +80,9 @@ def run_turn(session_id: str, audio_bytes: bytes, filename: str | None = None) -
     except TranscriptionError as exc:
         raise TurnError(f"speech-to-text failed: {exc}", status_code=502) from exc
 
-    prompt = _compose_prompt(scenario, session.history, user_text, session.language)
+    prompt = _compose_prompt(
+        scenario, session.history, user_text, session.language, session.difficulty
+    )
 
     try:
         ai_text = generate_reply(prompt)

@@ -3,18 +3,26 @@ import tempfile
 from functools import lru_cache
 from pathlib import Path
 
+from app.settings import get_stt_model
+
 
 class TranscriptionError(Exception):
     """Raised when audio cannot be transcribed."""
 
 
-@lru_cache(maxsize=1)
-def _get_model():
+@lru_cache(maxsize=3)
+def _load_model(model_size: str, compute_type: str):
+    """Load one Whisper model, cached per size so switching the configured
+    model in settings loads the new one without evicting a still-useful one."""
     from faster_whisper import WhisperModel
 
-    model_size = os.environ.get("STT_MODEL_SIZE", "base")
-    compute_type = os.environ.get("STT_COMPUTE_TYPE", "int8")
     return WhisperModel(model_size, device="cpu", compute_type=compute_type)
+
+
+def _get_model():
+    return _load_model(
+        get_stt_model(), os.environ.get("STT_COMPUTE_TYPE", "int8")
+    )
 
 
 def _suffix_for(filename: str | None) -> str:

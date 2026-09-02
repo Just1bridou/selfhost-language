@@ -2,6 +2,7 @@
   const listEl = document.getElementById("scenario-list");
   const startBtn = document.getElementById("start-session-btn");
   const languageEl = document.getElementById("language-options");
+  const difficultyEl = document.getElementById("difficulty-options");
 
   // Small visual cue per built-in scenario. Unknown ids fall back to a
   // neutral glyph, so adding a scenario never needs a change here.
@@ -16,11 +17,12 @@
 
   let selectedScenario = null;
   let selectedLanguage = null;
+  let selectedDifficulty = null;
 
-  // Both a language and a scenario are required before a session can start,
-  // so the AI always knows which language to speak.
+  // A language, a level and a scenario are all required before a session can
+  // start, so the AI always knows which language to speak and how simply.
   function refreshStartButton() {
-    startBtn.disabled = !(selectedScenario && selectedLanguage);
+    startBtn.disabled = !(selectedScenario && selectedLanguage && selectedDifficulty);
   }
 
   // CSS uses :has(input:checked) for the selected look; this class mirrors it
@@ -61,6 +63,41 @@
     }
   }
 
+  function renderDifficulties(levels) {
+    difficultyEl.innerHTML = "";
+    for (const level of levels) {
+      const pill = document.createElement("label");
+      pill.className = "pill pill-rich";
+
+      const radio = document.createElement("input");
+      radio.type = "radio";
+      radio.name = "difficulty";
+      radio.value = level.code;
+      radio.addEventListener("change", () => {
+        selectedDifficulty = level.code;
+        markSelected(difficultyEl, ".pill", pill);
+        refreshStartButton();
+      });
+
+      const text = document.createElement("span");
+      text.className = "pill-text";
+
+      const name = document.createElement("span");
+      name.className = "pill-name";
+      name.textContent = level.label;
+
+      const hint = document.createElement("span");
+      hint.className = "pill-hint";
+      hint.textContent = level.hint;
+
+      text.appendChild(name);
+      text.appendChild(hint);
+      pill.appendChild(radio);
+      pill.appendChild(text);
+      difficultyEl.appendChild(pill);
+    }
+  }
+
   function renderScenarios(scenarios) {
     listEl.innerHTML = "";
     for (const scenario of scenarios) {
@@ -89,12 +126,7 @@
       name.className = "scenario-name";
       name.textContent = scenario.title;
 
-      const meta = document.createElement("span");
-      meta.className = "scenario-meta";
-      meta.textContent = scenario.difficulty;
-
       body.appendChild(name);
-      body.appendChild(meta);
 
       card.appendChild(radio);
       card.appendChild(glyph);
@@ -105,6 +137,7 @@
 
   function renderLoadError(onRetry) {
     languageEl.innerHTML = "";
+    difficultyEl.innerHTML = "";
     listEl.innerHTML = "";
 
     const box = document.createElement("div");
@@ -125,11 +158,13 @@
 
   async function loadOptions() {
     try {
-      const [languages, scenarios] = await Promise.all([
+      const [languages, difficulties, scenarios] = await Promise.all([
         fetchJson("/api/languages", "languages"),
+        fetchJson("/api/difficulties", "levels"),
         fetchJson("/api/scenarios", "scenarios"),
       ]);
       renderLanguages(languages);
+      renderDifficulties(difficulties);
       renderScenarios(scenarios);
     } catch (err) {
       renderLoadError(loadOptions);
@@ -140,12 +175,13 @@
     await loadOptions();
 
     startBtn.addEventListener("click", () => {
-      if (selectedScenario && selectedLanguage) {
+      if (selectedScenario && selectedLanguage && selectedDifficulty) {
         onStart({
           scenarioId: selectedScenario.id,
           scenarioTitle: selectedScenario.title,
           language: selectedLanguage.code,
           languageLabel: selectedLanguage.native_label,
+          difficulty: selectedDifficulty,
         });
       }
     });
@@ -154,14 +190,16 @@
   function reset() {
     selectedScenario = null;
     selectedLanguage = null;
+    selectedDifficulty = null;
     startBtn.disabled = true;
 
     for (const input of document.querySelectorAll(
-      "#language-options input:checked, #scenario-list input:checked"
+      "#language-options input:checked, #difficulty-options input:checked, #scenario-list input:checked"
     )) {
       input.checked = false;
     }
     markSelected(languageEl, ".pill", null);
+    markSelected(difficultyEl, ".pill", null);
     markSelected(listEl, ".scenario-card", null);
   }
 
