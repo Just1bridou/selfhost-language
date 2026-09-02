@@ -9,6 +9,12 @@ from app.state import session_store
 client = TestClient(app)
 
 
+def _flatten(messages):
+    """Prompt assertions read the whole conversation the model was
+    handed, now that it is a role-tagged list rather than one string."""
+    return " ".join(m["content"] for m in messages)
+
+
 def _start_session(scenario_id: str = "restaurant", language: str = "fr"):
     return client.post(
         "/api/session/start",
@@ -61,8 +67,8 @@ def test_prompt_instructs_the_ai_to_speak_the_session_language(monkeypatch):
     )
     monkeypatch.setattr(turn, "synthesize", lambda text, language=None: b"fake-audio")
 
-    def fake_generate_reply(prompt):
-        prompts.append(prompt)
+    def fake_generate_reply(messages):
+        prompts.append(_flatten(messages))
         return "Bonjour !"
 
     monkeypatch.setattr(turn, "generate_reply", fake_generate_reply)
@@ -95,7 +101,7 @@ def test_turn_passes_session_language_to_stt_and_tts(monkeypatch):
         return b"fake-audio"
 
     monkeypatch.setattr(turn, "transcribe", fake_transcribe)
-    monkeypatch.setattr(turn, "generate_reply", lambda prompt: "Bonjour !")
+    monkeypatch.setattr(turn, "generate_reply", lambda messages: "Bonjour !")
     monkeypatch.setattr(turn, "synthesize", fake_synthesize)
 
     session_id = _start_session(language="fr").json()["session_id"]

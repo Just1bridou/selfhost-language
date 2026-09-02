@@ -12,6 +12,12 @@ from app.pipeline.tts import SynthesisError
 from app.state import session_store
 
 client = TestClient(app)
+
+
+def _flatten(messages):
+    """Prompt assertions read the whole conversation the model was
+    handed, now that it is a role-tagged list rather than one string."""
+    return " ".join(m["content"] for m in messages)
 FIXTURE_AUDIO = Path(__file__).parent / "fixtures" / "sample_audio.wav"
 
 
@@ -37,8 +43,8 @@ def test_turn_full_flow_returns_transcript_reply_and_audio(monkeypatch):
 
     monkeypatch.setattr(turn, "transcribe", lambda audio_bytes, filename=None, language=None: "hello there")
 
-    def fake_generate_reply(prompt):
-        captured_prompts.append(prompt)
+    def fake_generate_reply(messages):
+        captured_prompts.append(_flatten(messages))
         return "Welcome! What would you like to order?"
 
     monkeypatch.setattr(turn, "generate_reply", fake_generate_reply)
@@ -70,7 +76,7 @@ def test_turn_passes_uploaded_filename_through_to_transcribe(monkeypatch):
         return "hi"
 
     monkeypatch.setattr(turn, "transcribe", fake_transcribe)
-    monkeypatch.setattr(turn, "generate_reply", lambda prompt: "reply")
+    monkeypatch.setattr(turn, "generate_reply", lambda messages: "reply")
     monkeypatch.setattr(turn, "synthesize", lambda text, language=None: b"fake-audio")
 
     session_id = _start_session()
@@ -87,8 +93,8 @@ def test_turn_prompt_includes_growing_history(monkeypatch):
     monkeypatch.setattr(turn, "transcribe", lambda audio_bytes, filename=None, language=None: "hi")
     prompts = []
 
-    def fake_generate_reply(prompt):
-        prompts.append(prompt)
+    def fake_generate_reply(messages):
+        prompts.append(_flatten(messages))
         return f"reply-{len(prompts)}"
 
     monkeypatch.setattr(turn, "generate_reply", fake_generate_reply)
@@ -128,7 +134,7 @@ def test_turn_stt_failure_returns_clear_error_and_leaves_history_untouched(monke
 def test_turn_llm_failure_returns_clear_error_and_leaves_history_untouched(monkeypatch):
     monkeypatch.setattr(turn, "transcribe", lambda audio_bytes, filename=None, language=None: "hi")
 
-    def broken_generate_reply(prompt):
+    def broken_generate_reply(messages):
         raise LLMError("ollama unreachable")
 
     monkeypatch.setattr(turn, "generate_reply", broken_generate_reply)
@@ -143,7 +149,7 @@ def test_turn_llm_failure_returns_clear_error_and_leaves_history_untouched(monke
 
 def test_turn_tts_failure_returns_clear_error_and_leaves_history_untouched(monkeypatch):
     monkeypatch.setattr(turn, "transcribe", lambda audio_bytes, filename=None, language=None: "hi")
-    monkeypatch.setattr(turn, "generate_reply", lambda prompt: "a reply")
+    monkeypatch.setattr(turn, "generate_reply", lambda messages: "a reply")
 
     def broken_synthesize(text, language=None):
         raise SynthesisError("voice unavailable")
@@ -179,3 +185,35 @@ def test_turn_real_end_to_end():
     assert body["ai_text"]
     assert body["audio_base64"]
     assert session_store.get_session(session_id).history
+
+
+def test_history_is_sent_as_real_roles_not_a_flattened_transcript(monkeypatch):
+    """Replaying past turns as user/assistant messages is what stops the model
+    continuing a "User:/Assistant:" pattern and writing both sides."""
+    captured = []
+
+    monkeypatch.setattr(
+        turn, "transcribe", lambda audio_bytes, filename=None, language=None: "second"
+    )
+    monkeypatch.setattr(turn, "synthesize", lambda text, language=None: b"fake-audio")
+
+    def fake_generate_reply(messages):
+        captured.append(messages)
+        return "reply"
+
+    monkeypatch.setattr(turn, "generate_reply", fake_generate_reply)
+
+    session_id = _start_session()
+    session_store.get_session(session_id).history.append(
+        {"user_text": "first", "ai_text": "first reply"}
+    )
+    _submit_turn(session_id)
+
+    messages = captured[0]
+    assert messages[0]["role"] == "system"
+    assert [m["role"] for m in messages[1:]] == ["user", "assistant", "user"]
+    assert messages[1]["content"] == "first"
+    assert messages[2]["content"] == "first reply"
+    assert messages[3]["content"] == "second"
+    # no hand-rolled speaker labels anywhere
+    assert not any("User:" in m["content"] for m in messages[1:])

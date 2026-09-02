@@ -108,18 +108,45 @@ def start_pull(model: str) -> dict:
     return get_pull_state()
 
 
-def generate_reply(prompt: str) -> str:
-    """Generate a reply to `prompt` using the local Ollama instance.
+# A model that ignores its stop token can keep writing *both* sides of the
+# conversation. Cut anything from the point it starts narrating another turn.
+_RUNAWAY_MARKERS = ("\nUser:", "\nAssistant:", "\nuser:", "\nassistant:")
+
+
+def _trim_runaway(reply: str) -> str:
+    """Keep only the model's own next turn.
+
+    With /api/chat the model's chat template normally supplies the end-of-turn
+    token, but small quantised models sometimes barrel past it and hallucinate
+    the user's reply too. Truncating at the first role marker is a cheap guard
+    that costs nothing when the model behaves.
+    """
+    cut = len(reply)
+    for marker in _RUNAWAY_MARKERS:
+        found = reply.find(marker)
+        if found != -1:
+            cut = min(cut, found)
+    return reply[:cut].strip()
+
+
+def generate_reply(messages: list[dict]) -> str:
+    """Generate the assistant's next turn from a role-tagged `messages` list.
+
+    Uses Ollama's /api/chat rather than /api/generate: the chat endpoint
+    applies the model's own conversation template, which supplies the
+    end-of-turn token. Feeding a hand-written "User:/Assistant:" transcript to
+    the completion endpoint instead makes the model continue the pattern and
+    write the user's next line as well.
 
     Raises LLMError if Ollama is unreachable, errors, times out, or returns a
     response this function cannot parse. Never calls any LLM endpoint other
     than the configured local Ollama service.
     """
-    url = f"{_base_url()}/api/generate"
-    payload = {"model": _model(), "prompt": prompt, "stream": False}
+    url = f"{_base_url()}/api/chat"
+    payload = {"model": _model(), "messages": messages, "stream": False}
 
     try:
-        response = httpx.post(url, json=payload, timeout=30.0)
+        response = httpx.post(url, json=payload, timeout=60.0)
         response.raise_for_status()
         data = response.json()
     except httpx.HTTPError as exc:
@@ -127,8 +154,12 @@ def generate_reply(prompt: str) -> str:
     except ValueError as exc:
         raise LLMError(f"Ollama returned a non-JSON response: {exc}") from exc
 
-    reply = data.get("response")
+    message = data.get("message")
+    reply = message.get("content") if isinstance(message, dict) else None
     if not isinstance(reply, str) or not reply.strip():
         raise LLMError(f"Ollama response did not contain usable text: {data!r}")
 
-    return reply.strip()
+    trimmed = _trim_runaway(reply)
+    if not trimmed:
+        raise LLMError("Ollama returned only conversation filler, no reply")
+    return trimmed

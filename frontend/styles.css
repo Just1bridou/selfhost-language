@@ -1099,3 +1099,10 @@ body {
 .catalog-row.is-too-big {
   opacity: 0.6;
 }
+
+.catalog-unrunnable {
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #b45309;
+}

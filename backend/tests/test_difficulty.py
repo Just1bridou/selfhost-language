@@ -8,6 +8,14 @@ from app.pipeline import turn
 from app.state import session_store
 
 client = TestClient(app)
+
+
+def _flatten(messages):
+    """Prompt assertions read the whole conversation the model was
+    handed, now that it is a role-tagged list rather than one string."""
+    return " ".join(m["content"] for m in messages)
+
+
 FIXTURE_AUDIO = Path(__file__).parent / "fixtures" / "sample_audio.wav"
 
 
@@ -25,8 +33,8 @@ def _capture_prompt(monkeypatch, session_id: str) -> str:
     )
     monkeypatch.setattr(turn, "synthesize", lambda text, language=None: b"fake-audio")
 
-    def fake_generate_reply(prompt):
-        prompts.append(prompt)
+    def fake_generate_reply(messages):
+        prompts.append(_flatten(messages))
         return "Hi there!"
 
     monkeypatch.setattr(turn, "generate_reply", fake_generate_reply)

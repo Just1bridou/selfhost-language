@@ -77,6 +77,39 @@ or delete past entries — supersede them with a new entry that references the o
 - **Made by:** direct implementation (outside the BMAD planning skills)
 - **Supersedes:** none
 
+### 2026-09-02 — Bug fix: the model wrote both sides of the conversation
+- **Symptom (user-reported, gemma4:e2b, Spanish):** the AI answered, then kept
+  going and hallucinated the user's next line and its own reply to it —
+  "¿Vives cerca de aquí? User: Sí, tengo una casa cerca... Assistant: Soy de
+  Madrid."
+- **Cause — it was the prompt, as the user suspected.** `_compose_prompt()`
+  flattened the history into a hand-written `User: ... Assistant: ...`
+  transcript and sent it to Ollama's **`/api/generate`**, a *completion*
+  endpoint. The model simply continued the pattern it was shown; nothing in
+  a raw transcript marks where its turn should end.
+- **Fix:** switched to **`/api/chat`** with a role-tagged `messages` list
+  (system + alternating user/assistant history). The chat endpoint applies the
+  model's own conversation template, which supplies the end-of-turn token.
+  Added a defensive `_trim_runaway()` that truncates at any leaked `User:` /
+  `Assistant:` marker, since small quantised models sometimes barrel past the
+  token anyway — it costs nothing when the model behaves.
+- **Contract change:** `generate_reply()` now takes `messages: list[dict]`
+  rather than `prompt: str`, deviating from story 2.2's AC#1. Deliberate: the
+  string signature is precisely what caused the bug. Its own tests and the
+  prompt-inspecting tests in 2.4/6.1/7.2 were updated to read the message list.
+- **Verified live:** three consecutive Spanish turns with history, zero
+  leakage, replies staying at the chosen beginner level.
+- **Second finding, unrelated to the fix:** `gemma4:e2b` cannot run on this
+  machine at all — Ollama returns `llama-server process has terminated:
+  signal: killed`, i.e. the OOM killer, because the Docker VM has 8.1 GB of
+  RAM. The user had already spent a 7.2 GB download to discover this. The
+  catalogue guarded **disk** space but not **memory**, so it now reports
+  `ram_total_gb` and disables (or flags, when already installed) any model
+  whose weights plus overhead won't fit. "Installed" and "runnable" are not
+  the same thing.
+- **Made by:** direct implementation (outside the BMAD planning skills)
+- **Supersedes:** none
+
 ### 2026-09-02 — Corrected: Gemma 4 exists; catalogue now lists it instead of Gemma 3n
 - **Decision:** User asked for Gemma 4 and I answered about Gemma 3n, assuming
   they had confused the two because the "E2B/E4B" naming originates there.

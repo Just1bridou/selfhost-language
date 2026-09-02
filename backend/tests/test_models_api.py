@@ -228,3 +228,28 @@ def test_free_disk_reports_the_most_constrained_filesystem(monkeypatch):
     monkeypatch.setattr(shutil_mod, "disk_usage", lambda path: fake[path])
 
     assert models_api._disk_free_gb() == 3.2
+
+
+def test_models_endpoint_reports_available_ram():
+    """Disk space alone doesn't decide whether a model can run: Ollama loads
+    the weights into memory, and one that fits on disk but not in RAM is
+    OOM-killed after the download has already completed."""
+    body = client.get("/api/models").json()
+    ram = body["llm"]["ram_total_gb"]
+    assert ram is None or ram > 0
+
+
+def test_ram_is_read_from_meminfo(monkeypatch, tmp_path):
+    from app.api import models as models_api
+
+    meminfo = tmp_path / "meminfo"
+    meminfo.write_text("MemTotal:        8130000 kB\nMemFree: 100 kB\n", encoding="utf-8")
+
+    real_open = open
+    monkeypatch.setattr(
+        "builtins.open",
+        lambda path, *a, **kw: real_open(meminfo, *a, **kw)
+        if path == "/proc/meminfo"
+        else real_open(path, *a, **kw),
+    )
+    assert models_api._ram_total_gb() == 8.1

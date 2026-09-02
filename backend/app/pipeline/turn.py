@@ -24,18 +24,26 @@ class TurnResult:
     audio_bytes: bytes
 
 
-def _compose_prompt(
+def _compose_messages(
     scenario,
     history: list[dict],
     user_text: str,
     language_code: str,
     difficulty_code: str,
-) -> str:
+) -> list[dict]:
+    """Build a role-tagged message list for Ollama's /api/chat.
+
+    Prior turns are replayed as real `user`/`assistant` messages rather than
+    being flattened into one "User: ... Assistant: ..." string. Besides being
+    what the chat endpoint expects, it means the model can tell its own past
+    turns from the user's, and its chat template closes each turn properly
+    instead of inviting it to write the next one itself.
+    """
     language = get_language(language_code)
     language_label = language.label if language else language_code
     difficulty = get_difficulty(difficulty_code)
 
-    lines = [
+    system = [
         "You are roleplaying a character for a language-practice conversation. "
         f"Speak only {language_label}, even if the user says something in "
         "another language, and stay in character for the entire conversation.",
@@ -43,14 +51,18 @@ def _compose_prompt(
         f"Goal: {scenario.goal}",
     ]
     if difficulty:
-        lines.append(f"Level: {difficulty.prompt_instruction}")
-    lines.append("")
+        system.append(f"Level: {difficulty.prompt_instruction}")
+    system.append(
+        "Reply with your character's next line only. Never write the user's "
+        "side of the conversation and never label speakers."
+    )
+
+    messages = [{"role": "system", "content": "\n".join(system)}]
     for turn in history:
-        lines.append(f"User: {turn['user_text']}")
-        lines.append(f"Assistant: {turn['ai_text']}")
-    lines.append(f"User: {user_text}")
-    lines.append("Assistant:")
-    return "\n".join(lines)
+        messages.append({"role": "user", "content": turn["user_text"]})
+        messages.append({"role": "assistant", "content": turn["ai_text"]})
+    messages.append({"role": "user", "content": user_text})
+    return messages
 
 
 def run_turn(session_id: str, audio_bytes: bytes, filename: str | None = None) -> TurnResult:
@@ -80,12 +92,12 @@ def run_turn(session_id: str, audio_bytes: bytes, filename: str | None = None) -
     except TranscriptionError as exc:
         raise TurnError(f"speech-to-text failed: {exc}", status_code=502) from exc
 
-    prompt = _compose_prompt(
+    messages = _compose_messages(
         scenario, session.history, user_text, session.language, session.difficulty
     )
 
     try:
-        ai_text = generate_reply(prompt)
+        ai_text = generate_reply(messages)
     except LLMError as exc:
         raise TurnError(f"language model failed: {exc}", status_code=502) from exc
 

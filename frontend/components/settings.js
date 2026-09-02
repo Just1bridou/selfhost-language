@@ -163,11 +163,19 @@
     wrap.appendChild(head);
 
     const free = state.llm.disk_free_gb;
+    const ram = state.llm.ram_total_gb;
     const hint = document.createElement("p");
     hint.className = "setting-hint";
+    let limits = "";
+    if (free !== null && free !== undefined) limits += ` About ${free} GB disk free`;
+    if (ram !== null && ram !== undefined) {
+      limits += limits ? `, ${ram} GB RAM available.` : ` About ${ram} GB RAM available.`;
+    } else if (limits) {
+      limits += ".";
+    }
     hint.textContent =
       "Bigger models speak other languages far better but need more disk and run slower on CPU." +
-      (free === null || free === undefined ? "" : ` About ${free} GB free.`);
+      limits;
     wrap.appendChild(hint);
 
     const pull = state.llm.pull || {};
@@ -203,9 +211,19 @@
       row.appendChild(info);
 
       if (installed) {
+        // Installed is not the same as runnable: a model can sit on disk and
+        // still be OOM-killed on load, which is worth flagging rather than
+        // letting the user discover it as a 500 mid-conversation.
+        const enoughRam =
+          ram === null || ram === undefined || ram >= model.size_gb + 1.5;
+
         const done = document.createElement("span");
-        done.className = "catalog-installed";
-        done.textContent = "Installed";
+        done.className = enoughRam ? "catalog-installed" : "catalog-unrunnable";
+        done.textContent = enoughRam ? "Installed" : "Installed · too big for RAM";
+        if (!enoughRam) {
+          done.title = `Needs roughly ${(model.size_gb + 1.5).toFixed(1)} GB of RAM to load, only ${ram} GB available. Raise Docker's memory limit or pick a smaller model.`;
+          row.classList.add("is-too-big");
+        }
         row.appendChild(done);
       } else if (isPulling) {
         const progress = document.createElement("span");
@@ -213,20 +231,30 @@
         progress.textContent = `Downloading… ${pull.percent || 0}%`;
         row.appendChild(progress);
       } else {
-        // Leave a little headroom: a pull needs room to unpack, not just to
-        // land the bytes.
-        const fits =
+        // Two separate limits, and a model has to clear both. Disk needs a
+        // little headroom to unpack; RAM has to hold the weights at load time
+        // or Ollama is OOM-killed after the download has already finished.
+        const fitsDisk =
           free === null || free === undefined || free >= model.size_gb + 0.5;
+        const fitsRam =
+          ram === null || ram === undefined || ram >= model.size_gb + 1.5;
+        const fits = fitsDisk && fitsRam;
 
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = "btn btn-ghost btn-sm";
-        btn.textContent = fits ? "Download" : "Not enough space";
+        btn.textContent = fits
+          ? "Download"
+          : fitsDisk
+            ? "Not enough memory"
+            : "Not enough space";
         btn.disabled = busy || !fits;
         if (fits) {
           btn.addEventListener("click", () => pullModel(model.name));
         } else {
-          btn.title = `Needs about ${model.size_gb} GB, only ${free} GB free.`;
+          btn.title = fitsDisk
+            ? `Needs roughly ${(model.size_gb + 1.5).toFixed(1)} GB of RAM to load, only ${ram} GB available.`
+            : `Needs about ${model.size_gb} GB of disk, only ${free} GB free.`;
           row.classList.add("is-too-big");
         }
         row.appendChild(btn);

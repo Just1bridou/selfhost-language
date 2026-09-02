@@ -50,6 +50,24 @@ def _disk_free_gb() -> float | None:
     return round(min(free_bytes) / 1e9, 1)
 
 
+def _ram_total_gb() -> float | None:
+    """Total RAM available to the container, i.e. the Docker VM's allowance.
+
+    Disk space is not the only limit on a model: Ollama loads the weights into
+    memory, and a model that fits on disk but not in RAM is simply OOM-killed
+    ("llama-server process has terminated: signal: killed"), after the user has
+    already waited for a multi-GB download. None if it can't be determined.
+    """
+    try:
+        with open("/proc/meminfo", encoding="utf-8") as meminfo:
+            for line in meminfo:
+                if line.startswith("MemTotal:"):
+                    return round(int(line.split()[1]) / 1e6, 1)
+    except (OSError, ValueError, IndexError):
+        pass
+    return None
+
+
 def _current_state() -> dict:
     current = settings.as_dict()
     installed = list_installed_models()
@@ -72,6 +90,7 @@ def _current_state() -> dict:
             "catalog": catalog_as_dicts(),
             "pull": get_pull_state(),
             "disk_free_gb": _disk_free_gb(),
+            "ram_total_gb": _ram_total_gb(),
         },
         "tts": {
             "engine": "Piper",

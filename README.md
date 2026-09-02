@@ -63,7 +63,10 @@ a restart.
 The panel also lists recommended models you can download with one click,
 from `gemma3:1b` (0.8 GB) up to `gemma4:e4b` (9.6 GB). Bigger models speak
 non-English languages far better but need more disk and run slower on CPU.
-Models that don't fit in the free space are shown but not downloadable.
+Models that don't fit are shown but not downloadable — the panel checks both
+free disk space and available RAM, because a model can fit on disk and still be
+OOM-killed when Ollama loads it. If a model you want is greyed out for memory,
+raise Docker Desktop's memory limit under Settings → Resources.
 
 > **On Gemma 4's `E` variants:** `E2B`/`E4B` name the parameters actually used
 > at inference, not the download size. `gemma4:e4b` stores 9.6 GB — more than
