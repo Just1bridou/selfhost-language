@@ -77,6 +77,42 @@ or delete past entries — supersede them with a new entry that references the o
 - **Made by:** direct implementation (outside the BMAD planning skills)
 - **Supersedes:** none
 
+### 2026-09-02 — UI redesign: modern, professional, light-only interface
+- **Decision:** User asked for a "super interface moderne, très
+  professionnelle" and explicitly **light, not dark**. Rebuilt the frontend's
+  presentation layer: design tokens (palette, spacing, radii, shadows,
+  easing) in `:root`, a branded header with a "100% local" badge, language
+  **pills** instead of a `<select>`, scenario **cards** in a responsive grid
+  instead of a radio list, a large circular **record button** with per-state
+  visuals (indigo idle → red pulsing ring while recording → spinner while
+  thinking), chat-style **transcript bubbles** (user right/indigo, AI
+  left/white) with an empty state, and a softer error banner with an icon
+  and an × dismiss.
+- **Light-only, deliberately:** removed both `prefers-color-scheme: dark`
+  blocks and set `color-scheme: light` (plus a `<meta name="color-scheme">`)
+  so native controls and the page stay light even when macOS is in dark
+  mode — otherwise the OS setting would have overridden the requested look.
+- **Kept the JS/DOM contracts intact** rather than rewriting behavior: the
+  `.hidden` section toggling, `data-state` status wiring, `ScenarioPicker`
+  `init`/`reset` API, and every error path from 5.2 all still work the same.
+  Two mechanical changes were needed: `setState()` no longer writes
+  `recordBtn.textContent` (that would wipe the button's inline SVG icons — it
+  drives `data-state` instead), and the picker now hands `startSession()` an
+  object (`scenarioId`/`scenarioTitle`/`language`/`languageLabel`) so the
+  session header can show the real scenario title and native language name
+  instead of raw ids.
+- **`:has()` with a fallback:** selected states use `:has(input:checked)`, but
+  the picker also toggles an `.is-selected` class with matching CSS, so the
+  selection still reads correctly on engines without `:has()` support.
+- **Verified:** all JS passes `node --check`; every id the JS queries exists
+  in the markup; no stale selectors from the old markup remain; all assets
+  serve 200; zero dark-mode blocks left; and a full HTTP round-trip
+  (languages → scenarios → session start → turn) still succeeds, confirming
+  the redesign didn't disturb the backend contracts. The visual result itself
+  needs the user's eyes — no browser tool in this session.
+- **Made by:** direct implementation (outside the BMAD planning skills)
+- **Supersedes:** none
+
 ### 2026-09-02 — Scope change: multi-language support (story 6.1), reversing the single-language assumption
 - **Decision:** User asked to force a language choice on the main menu so the
   AI knows which language to speak. This directly reverses tech-spec.md's

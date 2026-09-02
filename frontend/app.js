@@ -1,43 +1,50 @@
 (function () {
-  const mainEl = document.querySelector("main");
+  const mainEl = document.getElementById("main");
   const scenarioSection = document.getElementById("scenario-picker");
   const conversationSection = document.getElementById("conversation");
+  const conversationHeader = conversationSection.querySelector(".conversation-header");
   const conversationTitle = document.getElementById("conversation-title");
   const statusEl = document.getElementById("status-indicator");
   const recordBtn = document.getElementById("record-btn");
   const replyAudio = document.getElementById("reply-audio");
-  const transcriptPanel = document.getElementById("transcript-panel");
 
   // Created here rather than in index.html: #conversation is already only
-  // ever visible while a session is active, so inserting this button as one
-  // of its children satisfies "visible whenever a session is active" (AC#1)
-  // with no extra show/hide logic of its own.
+  // ever visible while a session is active, so putting this button inside it
+  // makes it visible exactly when a session is running, with no extra
+  // show/hide logic of its own.
   const endSessionBtn = document.createElement("button");
   endSessionBtn.id = "end-session-btn";
   endSessionBtn.type = "button";
+  endSessionBtn.className = "btn btn-ghost btn-sm";
   endSessionBtn.textContent = "End session";
-  endSessionBtn.style.marginTop = "1rem";
-  conversationSection.insertBefore(endSessionBtn, transcriptPanel);
+  conversationHeader.appendChild(endSessionBtn);
 
-  // A single shared, dismissible error banner reused for every failure mode
-  // (mic permission, turn failures, scenario/session-start failures) rather
-  // than each one fighting over the state-indicator text. Placed above both
-  // sections so it's visible regardless of which one is showing.
+  // One shared, dismissible banner reused for every failure mode (mic
+  // permission, turn failures, scenario/session-start failures) rather than
+  // each one fighting over the status text. Sits above both sections so it's
+  // visible whichever one is showing.
   const errorBanner = document.createElement("div");
   errorBanner.id = "error-banner";
   errorBanner.hidden = true;
   errorBanner.setAttribute("role", "alert");
   errorBanner.setAttribute("aria-live", "assertive");
 
+  const errorIcon = document.createElement("span");
+  errorIcon.className = "error-icon";
+  errorIcon.setAttribute("aria-hidden", "true");
+  errorIcon.textContent = "!";
+
   const errorText = document.createElement("span");
-  errorBanner.appendChild(errorText);
+  errorText.className = "error-text";
 
   const errorDismissBtn = document.createElement("button");
   errorDismissBtn.type = "button";
-  errorDismissBtn.textContent = "Dismiss";
-  errorBanner.appendChild(errorDismissBtn);
+  errorDismissBtn.className = "error-dismiss";
+  errorDismissBtn.setAttribute("aria-label", "Dismiss error");
+  errorDismissBtn.textContent = "×";
 
-  mainEl.insertBefore(errorBanner, mainEl.querySelector("h1").nextSibling);
+  errorBanner.append(errorIcon, errorText, errorDismissBtn);
+  mainEl.insertBefore(errorBanner, mainEl.firstChild);
 
   function showError(message) {
     errorText.textContent = message;
@@ -55,21 +62,31 @@
   let state = "idle"; // idle | recording | awaiting | playing
 
   const STATE_LABELS = {
-    idle: "Idle — press Record to speak",
-    recording: "Recording… press Stop to send",
-    awaiting: "Waiting for the AI's reply…",
-    playing: "Playing the AI's reply…",
+    idle: "Tap the microphone to speak",
+    recording: "Listening… tap again when you're done",
+    awaiting: "Thinking about a reply…",
+    playing: "Playing the reply…",
+  };
+
+  const RECORD_ARIA = {
+    idle: "Start recording",
+    recording: "Stop recording and send",
+    awaiting: "Waiting for the reply",
+    playing: "Playing the reply",
   };
 
   function setState(next) {
     state = next;
     statusEl.textContent = STATE_LABELS[next] || next;
     statusEl.dataset.state = next;
-    recordBtn.textContent = next === "recording" ? "Stop" : "Record";
+    // The button holds icon elements, so drive its look from data-state
+    // rather than overwriting its contents with text.
+    recordBtn.dataset.state = next;
+    recordBtn.setAttribute("aria-label", RECORD_ARIA[next] || next);
     recordBtn.disabled = next === "awaiting" || next === "playing";
   }
 
-  async function startSession(scenarioId, language) {
+  async function startSession({ scenarioId, scenarioTitle, language, languageLabel }) {
     let response;
     try {
       response = await fetch("/api/session/start", {
@@ -78,7 +95,7 @@
         body: JSON.stringify({ scenario_id: scenarioId, language }),
       });
     } catch (err) {
-      showError(`Could not reach the backend to start a session: ${err.message}`);
+      showError("Could not reach the backend to start a session. Is it still running?");
       return;
     }
 
@@ -93,9 +110,15 @@
 
     hideError();
     window.Transcript.clear();
+
+    conversationTitle.textContent = scenarioTitle || scenarioId;
+    const tag = document.createElement("span");
+    tag.className = "lang-tag";
+    tag.textContent = languageLabel || body.language;
+    conversationTitle.appendChild(tag);
+
     scenarioSection.hidden = true;
     conversationSection.hidden = false;
-    conversationTitle.textContent = `Scenario: ${scenarioId} — speaking ${body.language}`;
     setState("idle");
   }
 
@@ -111,9 +134,8 @@
 
   // The backend's error `detail` strings are accurate but technical (raw
   // exception text, internal URLs). Map the known per-stage prefixes (see
-  // pipeline/turn.py) to non-technical phrasing per AC#2; fall back to a
-  // generic message for anything unrecognized rather than showing the raw
-  // detail to the user.
+  // pipeline/turn.py) to non-technical phrasing; fall back to a generic
+  // message for anything unrecognized rather than showing the raw detail.
   function friendlyTurnError(detail) {
     if (typeof detail !== "string") return null;
     if (detail.startsWith("speech-to-text failed")) {
@@ -163,17 +185,16 @@
     try {
       await replyAudio.play();
     } catch (err) {
-      // The reply was received fine; playback itself (e.g. blocked by the
-      // browser) failing shouldn't strand the user in "awaiting reply".
-      showError(`The reply audio could not play automatically: ${err.message}`);
+      // The reply arrived fine; playback itself failing (e.g. blocked by the
+      // browser) shouldn't strand the user in "thinking about a reply".
+      showError("The reply audio could not play automatically.");
       setState("idle");
     }
   }
 
   function endSession() {
-    // Best-effort cleanup if a recording or playback was in flight, so
-    // ending mid-turn doesn't leave a stray mic stream open or the UI in a
-    // state that looks stuck (edge case from Testing).
+    // Best-effort cleanup if a recording or playback was in flight, so ending
+    // mid-turn doesn't leave a stray mic stream open or the UI looking stuck.
     if (state === "recording") {
       window.Recorder.stop().catch(() => {});
     }

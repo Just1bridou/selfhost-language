@@ -3,33 +3,93 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Self-Hosted Voice Language Tutor</title>
+  <meta name="color-scheme" content="light" />
+  <title>Voice Language Tutor</title>
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <main>
-    <h1>Self-Hosted Voice Language Tutor</h1>
+  <div class="app">
+    <header class="app-header">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" />
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+            <line x1="12" y1="19" x2="12" y2="22" />
+          </svg>
+        </span>
+        <div class="brand-text">
+          <h1>Voice Language Tutor</h1>
+          <p>Practice speaking out loud — everything runs on your machine.</p>
+        </div>
+      </div>
+      <span class="badge-local" title="No audio or transcript leaves this device">
+        <span class="badge-dot" aria-hidden="true"></span>
+        100% local
+      </span>
+    </header>
 
-    <section id="scenario-picker">
-      <h2>Choose a language</h2>
-      <label for="language-select" class="visually-hidden">Practice language</label>
-      <select id="language-select">
-        <option value="" selected disabled>— Choose a language —</option>
-      </select>
+    <main id="main">
+      <section id="scenario-picker" class="card">
+        <div class="step">
+          <p class="eyebrow">Step 1 — Language</p>
+          <h2 class="step-title">Which language are you practicing?</h2>
+          <div id="language-options" class="pill-group"></div>
+        </div>
 
-      <h2>Choose a scenario</h2>
-      <ul id="scenario-list"></ul>
-      <button id="start-session-btn" disabled>Start session</button>
-    </section>
+        <hr class="divider" />
 
-    <section id="conversation" hidden>
-      <h2 id="conversation-title"></h2>
-      <p id="status-indicator" aria-live="polite" data-state="idle">Idle</p>
-      <button id="record-btn">Record</button>
-      <audio id="reply-audio"></audio>
-      <div id="transcript-panel" aria-live="polite"></div>
-    </section>
-  </main>
+        <div class="step">
+          <p class="eyebrow">Step 2 — Scenario</p>
+          <h2 class="step-title">Pick a situation to rehearse</h2>
+          <div id="scenario-list" class="scenario-grid"></div>
+        </div>
+
+        <button id="start-session-btn" class="btn btn-primary btn-block" type="button" disabled>
+          Start conversation
+          <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="5" y1="12" x2="19" y2="12" />
+            <polyline points="12 5 19 12 12 19" />
+          </svg>
+        </button>
+      </section>
+
+      <section id="conversation" class="card" hidden>
+        <div class="conversation-header">
+          <div class="conversation-heading">
+            <p class="eyebrow">In session</p>
+            <h2 id="conversation-title" class="step-title"></h2>
+          </div>
+        </div>
+
+        <div class="stage">
+          <button id="record-btn" class="record-btn" type="button"
+                  data-state="idle" aria-label="Start recording">
+            <svg class="icon-mic" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" />
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+              <line x1="12" y1="19" x2="12" y2="22" />
+            </svg>
+            <span class="icon-stop" aria-hidden="true"></span>
+            <span class="icon-spinner" aria-hidden="true"></span>
+          </button>
+          <p id="status-indicator" class="status" data-state="idle" aria-live="polite">
+            Tap the microphone to speak
+          </p>
+        </div>
+
+        <audio id="reply-audio"></audio>
+        <div id="transcript-panel" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <span>Speech, language model and voice all run offline on this machine.</span>
+    </footer>
+  </div>
 
   <script src="/components/scenario_picker.js"></script>
   <script src="/components/recorder.js"></script>
