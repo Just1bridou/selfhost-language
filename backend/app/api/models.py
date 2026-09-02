@@ -1,3 +1,6 @@
+import os
+import shutil
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
@@ -21,6 +24,32 @@ class UpdateModelsRequest(BaseModel):
     tts_voices: dict[str, str] | None = None
 
 
+def _disk_free_gb() -> float | None:
+    """Free space a model download can actually use — the smaller of two
+    filesystems, because both constrain a pull:
+
+    - "/" is the Docker VM's own virtual disk, where Ollama's model volume lives.
+    - the bind-mounted data dir passes through to the host filesystem, which is
+      where that virtual disk image is itself stored.
+
+    Reporting only the VM's view is actively misleading: it cheerfully claims
+    tens of GB free while the host has almost none, and the pull then dies
+    partway through with an I/O error — which is exactly how this project's
+    very first `docker compose up` failed.
+
+    None if neither can be determined.
+    """
+    free_bytes = []
+    for path in ("/", os.environ.get("APP_DATA_DIR", "/app/data")):
+        try:
+            free_bytes.append(shutil.disk_usage(path).free)
+        except OSError:
+            continue
+    if not free_bytes:
+        return None
+    return round(min(free_bytes) / 1e9, 1)
+
+
 def _current_state() -> dict:
     current = settings.as_dict()
     installed = list_installed_models()
@@ -42,6 +71,7 @@ def _current_state() -> dict:
             "model_installed": current["llm_model"] in installed,
             "catalog": catalog_as_dicts(),
             "pull": get_pull_state(),
+            "disk_free_gb": _disk_free_gb(),
         },
         "tts": {
             "engine": "Piper",

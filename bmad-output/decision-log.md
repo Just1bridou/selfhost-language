@@ -77,6 +77,29 @@ or delete past entries — supersede them with a new entry that references the o
 - **Made by:** direct implementation (outside the BMAD planning skills)
 - **Supersedes:** none
 
+### 2026-09-02 — Added Gemma 3n to the catalogue, and a disk-space guard that exposed a misleading check
+- **Decision:** User asked why Gemma 3n E2B/E4B weren't offered. Checked their
+  registry manifests: they exist, but **E2B is 5.6 GB and E4B is 7.5 GB on
+  disk** — the "E2B/E4B" names refer to *effective* parameters at inference
+  (Per-Layer Embeddings keep the memory footprint low), not to download size,
+  so E4B is actually heavier than every 7B model already in the catalogue.
+  Added both with their true sizes and a note explaining the naming, since
+  the user should decide with accurate numbers rather than have them omitted.
+- **Added a free-space guard** so a download that cannot possibly fit is
+  disabled rather than failing halfway.
+- **That guard immediately exposed a bug in itself.** The first version read
+  `shutil.disk_usage("/")`, which inside the container reports the Docker
+  VM's virtual disk: **46.3 GB free while the macOS host had 3.0 GB**. It
+  would have cheerfully green-lit a 7.5 GB pull that could not succeed —
+  precisely how this project's very first `docker compose up` failed back in
+  wave 1 ("read-only file system" mid-extraction, caused by a full host
+  disk). Fixed by taking the *minimum* of the VM disk and the bind-mounted
+  data directory, which passes through to the host filesystem and correctly
+  reports 3.2 GB. Verified live: the endpoint now reports 3.2 GB and marks
+  everything from `gemma3:4b` upward as not fitting.
+- **Made by:** direct implementation (outside the BMAD planning skills)
+- **Supersedes:** none
+
 ### 2026-09-02 — Model configuration (7.1) and difficulty levels (7.2)
 - **Decision:** Two user-requested features, both turning something fixed into
   something chosen. (7.1) A settings panel now shows all three engines and

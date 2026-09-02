@@ -162,10 +162,12 @@
     head.textContent = "Available to download";
     wrap.appendChild(head);
 
+    const free = state.llm.disk_free_gb;
     const hint = document.createElement("p");
     hint.className = "setting-hint";
     hint.textContent =
-      "Bigger models speak other languages far better but need more disk and run slower on CPU.";
+      "Bigger models speak other languages far better but need more disk and run slower on CPU." +
+      (free === null || free === undefined ? "" : ` About ${free} GB free.`);
     wrap.appendChild(hint);
 
     const pull = state.llm.pull || {};
@@ -211,12 +213,22 @@
         progress.textContent = `Downloading… ${pull.percent || 0}%`;
         row.appendChild(progress);
       } else {
+        // Leave a little headroom: a pull needs room to unpack, not just to
+        // land the bytes.
+        const fits =
+          free === null || free === undefined || free >= model.size_gb + 0.5;
+
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = "btn btn-ghost btn-sm";
-        btn.textContent = "Download";
-        btn.disabled = busy;
-        btn.addEventListener("click", () => pullModel(model.name));
+        btn.textContent = fits ? "Download" : "Not enough space";
+        btn.disabled = busy || !fits;
+        if (fits) {
+          btn.addEventListener("click", () => pullModel(model.name));
+        } else {
+          btn.title = `Needs about ${model.size_gb} GB, only ${free} GB free.`;
+          row.classList.add("is-too-big");
+        }
         row.appendChild(btn);
       }
 

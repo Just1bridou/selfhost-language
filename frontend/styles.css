@@ -1095,3 +1095,7 @@ body {
     gap: 8px;
   }
 }
+
+.catalog-row.is-too-big {
+  opacity: 0.6;
+}

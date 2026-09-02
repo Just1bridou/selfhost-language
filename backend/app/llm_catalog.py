@@ -8,6 +8,12 @@ disk space and CPU speed are the real constraints on a self-hosted box.
 1B-class models are usable for English practice but produce clumsy French,
 Spanish and German, so the UI can steer people toward a bigger model when
 they're practicing something else.
+
+`size_gb` is the real download size, summed from each tag's registry
+manifest. That matters most for the Gemma 3n entries: their "E2B"/"E4B"
+names refer to the *effective* parameters used at inference (Per-Layer
+Embeddings keep the memory footprint down), not to what they occupy on disk —
+E4B stores 7.5 GB, more than any 7B model here.
 """
 
 from dataclasses import dataclass
@@ -77,7 +83,21 @@ CATALOG: tuple[CatalogModel, ...] = (
         "Qwen 2.5 · 7B",
         4.7,
         True,
-        "Best multilingual quality here, but the heaviest to run.",
+        "Excellent multilingual quality, but heavy to run.",
+    ),
+    CatalogModel(
+        "gemma3n:e2b",
+        "Gemma 3n · E2B",
+        5.6,
+        True,
+        "Built for on-device use: runs like a 2B model but stores 5.6 GB.",
+    ),
+    CatalogModel(
+        "gemma3n:e4b",
+        "Gemma 3n · E4B",
+        7.5,
+        True,
+        "Same family, more capable. Runs like a 4B model but stores 7.5 GB.",
     ),
 )
 

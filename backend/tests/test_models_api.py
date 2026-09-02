@@ -1,3 +1,5 @@
+from types import SimpleNamespace
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -187,3 +189,40 @@ def test_pull_refuses_a_second_concurrent_download():
         llm._pull_state.update(
             {"model": None, "status": "idle", "percent": 0, "error": None}
         )
+
+
+def test_catalog_includes_gemma3n_with_real_download_sizes():
+    """The E2B/E4B names refer to effective inference parameters, not disk
+    footprint — the catalogue must show the real download size so a 7.5 GB
+    model isn't mistaken for a small one."""
+    catalog = client.get("/api/models").json()["llm"]["catalog"]
+    by_name = {m["name"]: m for m in catalog}
+
+    assert by_name["gemma3n:e2b"]["size_gb"] == 5.6
+    assert by_name["gemma3n:e4b"]["size_gb"] == 7.5
+    # E4B really is heavier on disk than the 7B models it sits next to
+    assert by_name["gemma3n:e4b"]["size_gb"] > by_name["qwen2.5:7b"]["size_gb"]
+
+
+def test_models_endpoint_reports_free_disk_space():
+    body = client.get("/api/models").json()
+    free = body["llm"]["disk_free_gb"]
+    assert free is None or free >= 0
+
+
+def test_free_disk_reports_the_most_constrained_filesystem(monkeypatch):
+    """A container sees the Docker VM's roomy virtual disk at "/", but that
+    image lives on the host filesystem reached through the bind mount. The
+    smaller number is the one that decides whether a pull can finish."""
+    import shutil as shutil_mod
+
+    from app.api import models as models_api
+
+    fake = {
+        "/": SimpleNamespace(free=46_000_000_000, total=0, used=0),
+        "/data": SimpleNamespace(free=3_200_000_000, total=0, used=0),
+    }
+    monkeypatch.setenv("APP_DATA_DIR", "/data")
+    monkeypatch.setattr(shutil_mod, "disk_usage", lambda path: fake[path])
+
+    assert models_api._disk_free_gb() == 3.2

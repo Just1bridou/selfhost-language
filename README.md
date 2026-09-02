@@ -61,8 +61,13 @@ and change any of them. Changes are saved to `data/settings.json` and survive
 a restart.
 
 The panel also lists recommended models you can download with one click,
-including small Gemma models. Bigger models speak non-English languages far
-better but need more disk and run slower on CPU.
+from `gemma3:1b` (0.8 GB) up to `gemma3n:e4b` (7.5 GB). Bigger models speak
+non-English languages far better but need more disk and run slower on CPU.
+Models that don't fit in the free space are shown but not downloadable.
+
+> **On Gemma 3n:** the `E2B`/`E4B` names describe the parameters actually used
+> at inference, not the download. They store 5.6 GB and 7.5 GB respectively —
+> E4B is heavier on disk than any 7B model here, despite running like a 4B one.
 
 ### Difficulty levels
 
