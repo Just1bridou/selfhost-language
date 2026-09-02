@@ -19,6 +19,35 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-02 — Bug report: recording doesn't seem to capture the user's voice
+- **Decision:** User reported that after the browser manual pass, recording
+  didn't seem to capture their actual speech. Investigated and shipped two
+  defensive fixes: (1) `recorder.js` now explicitly picks a supported
+  `MediaRecorder` `mimeType` (webm/opus → ogg/opus → mp4, in that order)
+  instead of relying on the browser's unspecified default, since different
+  browsers (Safari especially) vary here; (2) the backend (`stt.py`,
+  `pipeline/turn.py`, `api/turn.py`) now uses the uploaded file's actual
+  extension as a temp-file suffix hint for faster-whisper's decoder, instead
+  of always hardcoding `.wav` regardless of the real content. `app.js` also
+  now rejects a suspiciously small recording (< 2000 bytes) client-side with
+  a clear message pointing at mic permission/input device/volume, instead of
+  silently submitting near-empty audio.
+- **Root cause NOT confirmed:** built a real WebM/Opus file (via `ffmpeg`,
+  matching what a browser's MediaRecorder actually produces) and tested
+  `transcribe()` both with and without the extension-hint fix — both
+  decoded correctly ("Hello World." either way). So the file-extension
+  mismatch, while a legitimate latent correctness issue worth fixing
+  defensively, was **not** the actual cause of the user's symptom. The real
+  cause is still open — most likely candidates given no reproduction access:
+  the browser's default (unset) `mimeType` producing bad/empty audio on this
+  specific browser, or macOS's System Settings microphone privacy toggle not
+  being enabled for the browser even though the in-page permission prompt
+  was accepted (silently yields an empty/muted stream). Asked the user for
+  their browser and to check that OS-level setting.
+- **Made by:** direct implementation (outside the BMAD planning skills),
+  investigating a user-reported bug
+- **Supersedes:** none
+
 ### 2026-09-02 — Wave 8 (story 4.2, live transcript) implemented, status: review (not done)
 - **Decision:** Added `transcript.js` (`clear()`/`appendTurn()`) and hooked it
   into `app.js`'s existing `startSession()`/`submitTurn()`. Also edited

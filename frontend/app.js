@@ -43,10 +43,21 @@
     setState("idle");
   }
 
+  const MIN_RECORDING_BYTES = 2000; // a fraction of a second of real audio is at least this big
+
+  function extensionForMimeType(mimeType) {
+    if (mimeType.includes("webm")) return "webm";
+    if (mimeType.includes("ogg")) return "ogg";
+    if (mimeType.includes("mp4")) return "mp4";
+    if (mimeType.includes("wav")) return "wav";
+    return "bin";
+  }
+
   async function submitTurn(blob) {
     setState("awaiting");
     const formData = new FormData();
-    formData.append("audio", blob, "turn.webm");
+    const extension = extensionForMimeType(blob.type || "");
+    formData.append("audio", blob, `turn.${extension}`);
 
     const response = await fetch(`/api/session/${sessionId}/turn`, {
       method: "POST",
@@ -84,6 +95,12 @@
     if (state === "recording") {
       try {
         const blob = await window.Recorder.stop();
+        if (blob.size < MIN_RECORDING_BYTES) {
+          statusEl.textContent =
+            "That recording came out empty or too short — check your microphone (browser permission, input device, volume) and try again.";
+          setState("idle");
+          return;
+        }
         await submitTurn(blob);
       } catch (err) {
         statusEl.textContent = `Turn failed: ${err.message}`;

@@ -12,7 +12,7 @@ async def submit_turn(session_id: str, audio: UploadFile = File(...)) -> dict:
     audio_bytes = await audio.read()
 
     try:
-        result = run_turn(session_id, audio_bytes)
+        result = run_turn(session_id, audio_bytes, filename=audio.filename)
     except TurnError as exc:
         raise HTTPException(status_code=exc.status_code, detail=str(exc)) from exc
 

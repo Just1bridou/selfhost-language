@@ -61,3 +61,29 @@ def test_transcribe_real_audio_matches_expected_content():
     text = transcribe(audio_bytes).lower()
     assert "hello" in text
     assert "world" in text
+
+
+def test_transcribe_uses_filename_extension_as_decode_hint(monkeypatch):
+    """A browser MediaRecorder blob is rarely actually WAV (webm/opus, ogg,
+    mp4...); the temp file's suffix should match so the decoder's format
+    probing has an accurate hint instead of always claiming .wav."""
+    seen_paths = []
+
+    class _RecordingModel:
+        def transcribe(self, path):
+            seen_paths.append(path)
+            return [_StubSegment("ok")], SimpleNamespace(language="en")
+
+    monkeypatch.setattr(stt, "_get_model", lambda: _RecordingModel())
+
+    transcribe(b"fake-webm-bytes", filename="turn.webm")
+    assert seen_paths[-1].endswith(".webm")
+
+    transcribe(b"fake-ogg-bytes", filename="turn.ogg")
+    assert seen_paths[-1].endswith(".ogg")
+
+    transcribe(b"fake-bytes", filename=None)
+    assert seen_paths[-1].endswith(".wav")
+
+    transcribe(b"fake-bytes", filename="no-extension")
+    assert seen_paths[-1].endswith(".wav")

@@ -32,7 +32,7 @@ def _submit_turn(session_id: str):
 def test_turn_full_flow_returns_transcript_reply_and_audio(monkeypatch):
     captured_prompts = []
 
-    monkeypatch.setattr(turn, "transcribe", lambda audio_bytes: "hello there")
+    monkeypatch.setattr(turn, "transcribe", lambda audio_bytes, filename=None: "hello there")
 
     def fake_generate_reply(prompt):
         captured_prompts.append(prompt)
@@ -59,8 +59,29 @@ def test_turn_full_flow_returns_transcript_reply_and_audio(monkeypatch):
     assert session.history == [{"user_text": "hello there", "ai_text": "Welcome! What would you like to order?"}]
 
 
+def test_turn_passes_uploaded_filename_through_to_transcribe(monkeypatch):
+    seen = {}
+
+    def fake_transcribe(audio_bytes, filename=None):
+        seen["filename"] = filename
+        return "hi"
+
+    monkeypatch.setattr(turn, "transcribe", fake_transcribe)
+    monkeypatch.setattr(turn, "generate_reply", lambda prompt: "reply")
+    monkeypatch.setattr(turn, "synthesize", lambda text: b"fake-audio")
+
+    session_id = _start_session()
+    audio_bytes = FIXTURE_AUDIO.read_bytes()
+    client.post(
+        f"/api/session/{session_id}/turn",
+        files={"audio": ("turn.webm", audio_bytes, "audio/webm")},
+    )
+
+    assert seen["filename"] == "turn.webm"
+
+
 def test_turn_prompt_includes_growing_history(monkeypatch):
-    monkeypatch.setattr(turn, "transcribe", lambda audio_bytes: "hi")
+    monkeypatch.setattr(turn, "transcribe", lambda audio_bytes, filename=None: "hi")
     prompts = []
 
     def fake_generate_reply(prompt):
@@ -88,7 +109,7 @@ def test_turn_missing_session_returns_404():
 
 
 def test_turn_stt_failure_returns_clear_error_and_leaves_history_untouched(monkeypatch):
-    def broken_transcribe(audio_bytes):
+    def broken_transcribe(audio_bytes, filename=None):
         raise TranscriptionError("audio_bytes is empty")
 
     monkeypatch.setattr(turn, "transcribe", broken_transcribe)
@@ -102,7 +123,7 @@ def test_turn_stt_failure_returns_clear_error_and_leaves_history_untouched(monke
 
 
 def test_turn_llm_failure_returns_clear_error_and_leaves_history_untouched(monkeypatch):
-    monkeypatch.setattr(turn, "transcribe", lambda audio_bytes: "hi")
+    monkeypatch.setattr(turn, "transcribe", lambda audio_bytes, filename=None: "hi")
 
     def broken_generate_reply(prompt):
         raise LLMError("ollama unreachable")
@@ -118,7 +139,7 @@ def test_turn_llm_failure_returns_clear_error_and_leaves_history_untouched(monke
 
 
 def test_turn_tts_failure_returns_clear_error_and_leaves_history_untouched(monkeypatch):
-    monkeypatch.setattr(turn, "transcribe", lambda audio_bytes: "hi")
+    monkeypatch.setattr(turn, "transcribe", lambda audio_bytes, filename=None: "hi")
     monkeypatch.setattr(turn, "generate_reply", lambda prompt: "a reply")
 
     def broken_synthesize(text):

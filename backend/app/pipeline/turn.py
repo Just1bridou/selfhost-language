@@ -39,8 +39,11 @@ def _compose_prompt(scenario, history: list[dict], user_text: str) -> str:
     return "\n".join(lines)
 
 
-def run_turn(session_id: str, audio_bytes: bytes) -> TurnResult:
+def run_turn(session_id: str, audio_bytes: bytes, filename: str | None = None) -> TurnResult:
     """Run one full conversation turn: STT -> scenario-aware LLM -> TTS.
+
+    `filename` is passed through to `transcribe()` as a format hint (see its
+    docstring) and is not otherwise significant.
 
     Raises TurnError (with a status_code hint) for a missing session or a
     failure at any pipeline stage. On any failure, session.history is left
@@ -59,7 +62,7 @@ def run_turn(session_id: str, audio_bytes: bytes) -> TurnResult:
         )
 
     try:
-        user_text = transcribe(audio_bytes)
+        user_text = transcribe(audio_bytes, filename=filename)
     except TranscriptionError as exc:
         raise TurnError(f"speech-to-text failed: {exc}", status_code=502) from exc
 
