@@ -121,7 +121,7 @@ the AI's spoken reply, and follow along with a live transcript.
 | ID | Slug | Intent | Status |
 |------|------|--------|--------|
 | 4.1 | web-ui-core | Minimal web UI: scenario picker, record button, reply playback | done |
-| 4.2 | live-transcript | Live transcript display for both sides of the conversation | review |
+| 4.2 | live-transcript | Live transcript display for both sides of the conversation | done |
 
 **Cross-epic dependencies:**
 - Blocked by: Epic 2 (needs the 2.4 turn endpoint), Epic 3 (needs the 3.3 scenario API)
@@ -162,9 +162,9 @@ backend session state
 No story points, velocity, or burndown. Track by COUNT only:
 
 - Total stories: 13
-- Done: 10
-- Remaining: 3
-- Completion rate: 77%
+- Done: 11
+- Remaining: 2
+- Completion rate: 85%
 
 ## Notes
 

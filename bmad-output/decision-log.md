@@ -44,6 +44,14 @@ or delete past entries — supersede them with a new entry that references the o
   being enabled for the browser even though the in-page permission prompt
   was accepted (silently yields an empty/muted stream). Asked the user for
   their browser and to check that OS-level setting.
+  - **Resolved:** two separate, unrelated causes, neither a code bug. (1) A
+    hard refresh fixed an apparent "Record button does nothing" symptom —
+    the browser was running a stale cached copy of the pre-fix JS. (2) The
+    original "doesn't record my voice" report was user error: recording
+    from the wrong/bad microphone input device. The defensive fixes above
+    are kept regardless — the size-check message in particular would have
+    surfaced "bad mic" faster and more clearly than a silently wrong
+    transcript.
 - **Made by:** direct implementation (outside the BMAD planning skills),
   investigating a user-reported bug
 - **Supersedes:** none
