@@ -34,20 +34,29 @@
     }
   }
 
-  function renderLoadError() {
+  function renderLoadError(onRetry) {
     listEl.innerHTML = "";
     const item = document.createElement("li");
-    item.textContent = "Could not load scenarios. Is the backend running?";
+    item.textContent = "Could not load scenarios. Is the backend running? ";
+    const retryBtn = document.createElement("button");
+    retryBtn.type = "button";
+    retryBtn.textContent = "Retry";
+    retryBtn.addEventListener("click", onRetry);
+    item.appendChild(retryBtn);
     listEl.appendChild(item);
   }
 
-  async function init(onStart) {
+  async function loadScenarios() {
     try {
       const scenarios = await fetchScenarios();
       renderScenarios(scenarios);
     } catch (err) {
-      renderLoadError();
+      renderLoadError(loadScenarios);
     }
+  }
+
+  async function init(onStart) {
+    await loadScenarios();
 
     startBtn.addEventListener("click", () => {
       if (selectedScenarioId) {

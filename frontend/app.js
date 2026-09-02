@@ -1,4 +1,5 @@
 (function () {
+  const mainEl = document.querySelector("main");
   const scenarioSection = document.getElementById("scenario-picker");
   const conversationSection = document.getElementById("conversation");
   const conversationTitle = document.getElementById("conversation-title");
@@ -17,6 +18,38 @@
   endSessionBtn.textContent = "End session";
   endSessionBtn.style.marginTop = "1rem";
   conversationSection.insertBefore(endSessionBtn, transcriptPanel);
+
+  // A single shared, dismissible error banner reused for every failure mode
+  // (mic permission, turn failures, scenario/session-start failures) rather
+  // than each one fighting over the state-indicator text. Placed above both
+  // sections so it's visible regardless of which one is showing.
+  const errorBanner = document.createElement("div");
+  errorBanner.id = "error-banner";
+  errorBanner.hidden = true;
+  errorBanner.setAttribute("role", "alert");
+  errorBanner.setAttribute("aria-live", "assertive");
+
+  const errorText = document.createElement("span");
+  errorBanner.appendChild(errorText);
+
+  const errorDismissBtn = document.createElement("button");
+  errorDismissBtn.type = "button";
+  errorDismissBtn.textContent = "Dismiss";
+  errorBanner.appendChild(errorDismissBtn);
+
+  mainEl.insertBefore(errorBanner, mainEl.querySelector("h1").nextSibling);
+
+  function showError(message) {
+    errorText.textContent = message;
+    errorBanner.hidden = false;
+  }
+
+  function hideError() {
+    errorBanner.hidden = true;
+    errorText.textContent = "";
+  }
+
+  errorDismissBtn.addEventListener("click", hideError);
 
   let sessionId = null;
   let state = "idle"; // idle | recording | awaiting | playing
@@ -37,17 +70,28 @@
   }
 
   async function startSession(scenarioId) {
-    const response = await fetch("/api/session/start", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ scenario_id: scenarioId }),
-    });
-    if (!response.ok) {
-      throw new Error(`failed to start session: HTTP ${response.status}`);
+    let response;
+    try {
+      response = await fetch("/api/session/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ scenario_id: scenarioId }),
+      });
+    } catch (err) {
+      showError(`Could not reach the backend to start a session: ${err.message}`);
+      return;
     }
+
+    if (!response.ok) {
+      const errorBody = await response.json().catch(() => ({}));
+      showError(errorBody.detail || `Could not start a session (HTTP ${response.status}).`);
+      return;
+    }
+
     const body = await response.json();
     sessionId = body.session_id;
 
+    hideError();
     window.Transcript.clear();
     scenarioSection.hidden = true;
     conversationSection.hidden = false;
@@ -65,20 +109,49 @@
     return "bin";
   }
 
+  // The backend's error `detail` strings are accurate but technical (raw
+  // exception text, internal URLs). Map the known per-stage prefixes (see
+  // pipeline/turn.py) to non-technical phrasing per AC#2; fall back to a
+  // generic message for anything unrecognized rather than showing the raw
+  // detail to the user.
+  function friendlyTurnError(detail) {
+    if (typeof detail !== "string") return null;
+    if (detail.startsWith("speech-to-text failed")) {
+      return "Could not understand that recording. Please try again.";
+    }
+    if (detail.startsWith("language model failed")) {
+      return "The AI isn't responding right now. Please try again in a moment.";
+    }
+    if (detail.startsWith("text-to-speech failed")) {
+      return "Got a reply, but could not turn it into speech. Please try again.";
+    }
+    if (detail.startsWith("no active session") || detail.startsWith("scenario ")) {
+      return "This session is no longer valid. Please end it and start a new one.";
+    }
+    return null;
+  }
+
   async function submitTurn(blob) {
     setState("awaiting");
     const formData = new FormData();
     const extension = extensionForMimeType(blob.type || "");
     formData.append("audio", blob, `turn.${extension}`);
 
-    const response = await fetch(`/api/session/${sessionId}/turn`, {
-      method: "POST",
-      body: formData,
-    });
+    let response;
+    try {
+      response = await fetch(`/api/session/${sessionId}/turn`, {
+        method: "POST",
+        body: formData,
+      });
+    } catch (err) {
+      throw new Error("Could not reach the backend. Check that it's still running and try again.");
+    }
 
     if (!response.ok) {
       const errorBody = await response.json().catch(() => ({}));
-      throw new Error(errorBody.detail || `turn failed: HTTP ${response.status}`);
+      throw new Error(
+        friendlyTurnError(errorBody.detail) || "The AI could not respond. Please try again."
+      );
     }
 
     const body = await response.json();
@@ -86,7 +159,15 @@
     replyAudio.src = `data:audio/wav;base64,${body.audio_base64}`;
 
     setState("playing");
-    await replyAudio.play();
+    hideError();
+    try {
+      await replyAudio.play();
+    } catch (err) {
+      // The reply was received fine; playback itself (e.g. blocked by the
+      // browser) failing shouldn't strand the user in "awaiting reply".
+      showError(`The reply audio could not play automatically: ${err.message}`);
+      setState("idle");
+    }
   }
 
   function endSession() {
@@ -100,6 +181,7 @@
     replyAudio.removeAttribute("src");
     replyAudio.load();
 
+    hideError();
     sessionId = null;
     window.Transcript.clear();
     window.ScenarioPicker.reset();
@@ -116,11 +198,12 @@
 
   recordBtn.addEventListener("click", async () => {
     if (state === "idle") {
+      hideError();
       try {
         await window.Recorder.start();
         setState("recording");
       } catch (err) {
-        statusEl.textContent = `Could not start recording: ${err.message}`;
+        showError(err.message);
       }
       return;
     }
@@ -129,14 +212,15 @@
       try {
         const blob = await window.Recorder.stop();
         if (blob.size < MIN_RECORDING_BYTES) {
-          statusEl.textContent =
-            "That recording came out empty or too short — check your microphone (browser permission, input device, volume) and try again.";
+          showError(
+            "That recording came out empty or too short — check your microphone (browser permission, input device, volume) and try again."
+          );
           setState("idle");
           return;
         }
         await submitTurn(blob);
       } catch (err) {
-        statusEl.textContent = `Turn failed: ${err.message}`;
+        showError(err.message);
         setState("idle");
       }
     }

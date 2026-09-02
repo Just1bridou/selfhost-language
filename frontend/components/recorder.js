@@ -24,9 +24,23 @@
 
   async function start() {
     if (!isSupported()) {
-      throw new Error("MediaRecorder is not supported in this browser");
+      throw new Error("Voice recording is not supported in this browser.");
     }
-    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (err) {
+      if (err.name === "NotAllowedError" || err.name === "SecurityError") {
+        throw new Error(
+          "Microphone access was denied. Allow microphone access for this page in your browser's site settings, then try again."
+        );
+      }
+      if (err.name === "NotFoundError") {
+        throw new Error("No microphone was found. Connect a microphone and try again.");
+      }
+      throw new Error(`Could not access the microphone: ${err.message}`);
+    }
+
     chunks = [];
 
     // Explicitly pick a supported mimeType rather than relying on the

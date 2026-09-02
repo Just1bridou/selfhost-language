@@ -56,6 +56,27 @@ or delete past entries — supersede them with a new entry that references the o
   investigating a user-reported bug
 - **Supersedes:** none
 
+### 2026-09-02 — Wave 10 (story 5.2, error states) implemented, status: review — final story of the backlog
+- **Decision:** Built a single shared, dismissible `#error-banner` and routed
+  every failure path (mic permission, turn-endpoint failures, scenario-list
+  load, session-start) through it, replacing the ad-hoc use of the
+  state-indicator text for errors. `recorder.js` now generates friendly
+  mic-permission-error messages itself; `app.js` maps the backend's technical
+  per-stage `detail` strings (e.g. raw Ollama connection errors) to
+  non-technical phrasing per AC#2, live-confirmed against the exact string
+  produced by stopping the `ollama` container mid-turn. Added a `Retry`
+  button to `scenario_picker.js`'s load-failure state (a necessary scope
+  deviation — AC#3 covers `GET /api/scenarios` failures and that's the only
+  file where the retry logic could live). Audited every `await` in the
+  touched code for AC#5 (no unhandled exceptions) and added a missing
+  `try/catch` around `replyAudio.play()`. Left at `review`, same reason as
+  every other frontend story this session: no connected browser tool.
+- **Rationale:** with `epics.md` now at 12/13 done, this is the last
+  planned story in the backlog — once confirmed, the tech-spec's full
+  13-story Quick Flow backlog is complete.
+- **Made by:** direct implementation (outside the BMAD planning skills)
+- **Supersedes:** none
+
 ### 2026-09-02 — Story 5.1 confirmed by user in a real browser, status: done
 - **Decision:** User manually tested end session / restart and confirmed it
   works. Flipped 5.1 from `review` to `done` (12/13 done — only 5.2 remains).
