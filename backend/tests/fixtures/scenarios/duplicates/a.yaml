@@ -1,0 +1,6 @@
+id: duplicate-id
+title: First Definition
+target_language: en
+persona_prompt: First version of a duplicated scenario id.
+goal: Test duplicate handling.
+difficulty: beginner

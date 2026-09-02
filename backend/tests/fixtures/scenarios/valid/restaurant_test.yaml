@@ -1,0 +1,8 @@
+id: restaurant-test
+title: Ordering at a Restaurant (test fixture)
+target_language: en
+persona_prompt: >
+  You are a friendly waiter at a busy restaurant. Greet the guest, take their
+  order, and ask reasonable follow-up questions about their choices.
+goal: The user successfully orders a starter, a main course, and a drink.
+difficulty: beginner

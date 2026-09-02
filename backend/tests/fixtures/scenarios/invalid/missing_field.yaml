@@ -1,0 +1,5 @@
+id: broken-scenario
+title: Missing Goal Field
+target_language: en
+persona_prompt: This scenario is deliberately missing the required "goal" field.
+difficulty: beginner

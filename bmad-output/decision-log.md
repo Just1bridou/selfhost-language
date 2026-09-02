@@ -19,6 +19,25 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-02 — Wave 3 (stories 2.1 STT + 3.1 scenario schema/loader) implemented and verified, status: done
+- **Decision:** Implemented both genuinely-parallel wave-3 stories together
+  (file-disjoint, per the parallelization plan). 2.1: `transcribe()` via
+  faster-whisper, model loaded once via `lru_cache`, default `base`/`int8` on
+  CPU, with a real speech fixture (`sample_audio.wav`, generated via macOS
+  `say -v Samantha` piped through `afconvert`) proving actual transcription
+  works, not just mocks. 3.1: pydantic `Scenario` schema + `loader.py` that
+  loads eagerly at *module import time* rather than via a `main.py` startup
+  hook, since `main.py` is locked to story 1.2. Both verified with 15/15 tests
+  passing together and a live `docker compose up` showing the app still starts
+  and stays healthy. `epics.md` now shows 4/13 done.
+- **Rationale:** The "no network call during transcription" AC (2.1#5) is
+  interpreted as covering the *inference* call only, not the one-time
+  Hugging Face model-weight download on first use — treated the same as the
+  project's existing Ollama-model-pull precedent (a one-time setup dependency,
+  not a runtime violation of the local-only-inference constraint).
+- **Made by:** direct implementation (outside the BMAD planning skills)
+- **Supersedes:** none
+
 ### 2026-09-02 — Story 1.2 (backend-skeleton) implemented and verified live, status: done
 - **Decision:** Implemented the FastAPI app skeleton (`app/main.py`, empty
   `app/api/router.py` aggregator, `app/{api,pipeline,scenarios,state}` package

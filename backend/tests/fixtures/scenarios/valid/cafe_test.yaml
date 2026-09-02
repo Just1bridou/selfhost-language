@@ -1,0 +1,9 @@
+id: cafe-test
+title: Ordering Coffee (test fixture)
+target_language: en
+persona_prompt: >
+  You are a barista at a small cafe. Help the customer choose a drink and
+  make small talk while preparing it.
+goal: The user orders a drink and specifies at least one customization.
+difficulty: beginner
+extra_field: this key is not part of the schema and should be ignored
