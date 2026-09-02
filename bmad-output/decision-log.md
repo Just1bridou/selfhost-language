@@ -56,6 +56,13 @@ or delete past entries — supersede them with a new entry that references the o
   investigating a user-reported bug
 - **Supersedes:** none
 
+### 2026-09-02 — Story 5.1 confirmed by user in a real browser, status: done
+- **Decision:** User manually tested end session / restart and confirmed it
+  works. Flipped 5.1 from `review` to `done` (12/13 done — only 5.2 remains).
+- **Made by:** direct implementation (outside the BMAD planning skills),
+  confirmed by the user
+- **Supersedes:** none
+
 ### 2026-09-02 — Wave 9 (story 5.1, session end/restart) implemented, status: review (not done)
 - **Decision:** Added an "End session" button, created and inserted by
   `app.js` directly into `#conversation` rather than declared in

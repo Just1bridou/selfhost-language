@@ -148,7 +148,7 @@ backend session state
 
 | ID | Slug | Intent | Status |
 |------|------|--------|--------|
-| 5.1 | session-end-restart | Session end/restart flow without restarting containers | review |
+| 5.1 | session-end-restart | Session end/restart flow without restarting containers | done |
 | 5.2 | error-states | User-facing error states (mic denied, model unavailable, pipeline failure) | ready-for-dev |
 
 **Cross-epic dependencies:**
@@ -162,9 +162,9 @@ backend session state
 No story points, velocity, or burndown. Track by COUNT only:
 
 - Total stories: 13
-- Done: 11
-- Remaining: 2
-- Completion rate: 85%
+- Done: 12
+- Remaining: 1
+- Completion rate: 92%
 
 ## Notes
 
