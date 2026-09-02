@@ -12,8 +12,8 @@ docker compose up
 
 This builds and starts two services:
 
-- `backend` — the application container (currently a placeholder; the FastAPI app
-  lands in a later story), served on http://localhost:8000
+- `backend` — the FastAPI application, served on http://localhost:8000
+  (`/health` for a liveness check)
 - `ollama` — the local LLM server, served on http://localhost:11434
 
 The first run downloads the `ollama/ollama` image and builds the `backend` image
@@ -23,11 +23,12 @@ again afterward reuses the cached images.
 ### Pulling a language model
 
 Starting the stack does **not** download a conversational model by itself — it
-only brings up the empty Ollama server. Once you're ready to use the LLM, pull a
-model into the running `ollama` container, e.g.:
+only brings up the empty Ollama server. The backend defaults to `llama3.2:1b`
+(overridable via the `OLLAMA_MODEL` env var), so pull that into the running
+`ollama` container before starting a conversation:
 
 ```
-docker compose exec ollama ollama pull llama3.1:8b-instruct-q4_0
+docker compose exec ollama ollama pull llama3.2:1b
 ```
 
 Pulled models are stored in a named Docker volume (`ollama-models`) and persist

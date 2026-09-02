@@ -19,6 +19,27 @@ or delete past entries — supersede them with a new entry that references the o
 
 ---
 
+### 2026-09-02 — Wave 4 (stories 2.2 LLM + 3.2 starter scenarios) implemented and verified, status: done
+- **Decision:** Implemented both file-disjoint wave-4 stories together. 2.2:
+  `generate_reply()` over Ollama's `/api/generate`, defaulting `OLLAMA_MODEL`
+  to `llama3.2:1b` (smaller than tech-spec's "~7-8B class" guidance, chosen
+  for a practical dev-loop/CI download-and-run budget on the CPU-only
+  baseline). 3.2: all 5 planned scenario YAML files (not just the 3 required
+  minimum). Verified together: pulled `llama3.2:1b` into the running Ollama
+  container (1.3GB), ran a real (non-mocked) LLM call against it, and
+  confirmed AC#4 live by stopping `ollama` mid-test and observing a fast
+  `LLMError` rather than a hang. Also confirmed the 5 real scenarios load
+  through 3.1's loader with zero errors — the first time that loader has run
+  against real (non-fixture) content. Updated `README.md`'s model-pull
+  example to match the actual default. `epics.md` now shows 6/13 done.
+- **Rationale for the smaller default model:** tech-spec.md's "~7-8B class"
+  figure was itself an unconfirmed assumption (see the 2026-09-02 tech-spec
+  entry below); `llama3.2:1b` keeps the project's own verification loop fast
+  or the download practical on a modest CPU-only host, while `OLLAMA_MODEL`
+  remains fully overridable if the user wants a larger/better model.
+- **Made by:** direct implementation (outside the BMAD planning skills)
+- **Supersedes:** none
+
 ### 2026-09-02 — Wave 3 (stories 2.1 STT + 3.1 scenario schema/loader) implemented and verified, status: done
 - **Decision:** Implemented both genuinely-parallel wave-3 stories together
   (file-disjoint, per the parallelization plan). 2.1: `transcribe()` via

@@ -1,0 +1,14 @@
+id: shopping
+title: Shopping for Clothes
+target_language: en
+persona_prompt: >
+  You are a shop assistant at a clothing store. Help the customer find what
+  they're looking for, ask about size and color preferences, mention price
+  when relevant, and offer a fitting room or a suggestion if it fits the
+  moment. Stay in character as the shop assistant throughout the
+  conversation.
+goal: >
+  The user asks about a specific clothing item, specifies at least a size
+  or color preference, and reaches a natural conclusion to the purchase
+  interaction (e.g. deciding to buy it or trying it on).
+difficulty: intermediate
